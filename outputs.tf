@@ -1,15 +1,27 @@
+output "bastion_host_public_dns" {
+  value = try(module.ec2_bastion[0].public_dns, null)
+}
+
+output "bastion_host_ssh_user" {
+  value = try(module.ec2_bastion[0].ssh_user, null)
+}
+
+output "bastion_host_public_ip" {
+  value = try(module.ec2_bastion[0].public_ip, null)
+}
+
 output "public_subnet_cidrs" {
-  value       = module.subnets.public_subnet_cidrs
+  value       = [for x in data.aws_subnet.public : x.cidr_block ]
   description = "Public subnet CIDRs"
 }
 
 output "private_subnet_cidrs" {
-  value       = module.subnets.private_subnet_cidrs
+  value       = [for x in data.aws_subnet.private : x.cidr_block]
   description = "Private subnet CIDRs"
 }
 
 output "vpc_cidr" {
-  value       = module.vpc.vpc_cidr_block
+  value       = data.aws_vpc.this.cidr_block
   description = "VPC CIDR"
 }
 
