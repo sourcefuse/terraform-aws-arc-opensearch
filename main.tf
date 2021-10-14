@@ -26,6 +26,11 @@ terraform {
   }
 }
 
+#provider "elasticsearch" {
+#  url = module.elasticsearch.domain_endpoint
+#}
+
+
 provider "aws" {
   region = var.region
 
@@ -169,36 +174,40 @@ resource "aws_security_group" "public" {
 ###########################################
 ## elasticsearch
 ###########################################
-resource "aws_iam_role" "this" {
-  name = "ec2Assume"
+data "aws_iam_policy_document" "es_full_access" {
+  statement {
+    sid       = "esFullAccess"
+    effect    = "Allow"
+    resources = [module.elasticsearch.domain_arn]
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      },
+    actions = [
+      "es:*",
     ]
-  })
+  }
+}
 
-#  inline_policy {
-#    name = "esAllow"
-#    policy = jsonencode({
-#      Statement = [
-#        {
-#          Action = "es:*"
-#          Effect = "Allow"
-#          Principal = {
-#            AWS = "*"
-#          }
-#        },
-#      ]
-#    })
-#  }
+module "role" {
+  source = "git::https://github.com/cloudposse/terraform-aws-iam-role?ref=0.13.0"
+
+  namespace    = "refarch"
+  stage        = terraform.workspace
+  name         = "es"
+  use_fullname = true
+
+  policy_description = "Grant full access to OpenSearch"
+  role_description   = "Grant full access to OpenSearch"
+
+  principals = {
+    "AWS" : ["*"]
+  }
+
+  policy_documents = [
+    data.aws_iam_policy_document.es_full_access.json,
+  ]
+
+  tags = merge(local.tags, tomap({
+    Name = "${local.base_name}-iam-role"
+  }))
 }
 
 module "elasticsearch" {
@@ -211,12 +220,12 @@ module "elasticsearch" {
   vpc_id                  = data.aws_vpc.this.id
   subnet_ids              = data.aws_subnet_ids.private.ids
   zone_awareness_enabled  = "true"
-  elasticsearch_version   = "6.8"
+  elasticsearch_version   = "OpenSearch_1.0"
   instance_type           = "t2.medium.elasticsearch"
   instance_count          = 2
   ebs_volume_size         = 10
-  iam_role_arns           = [aws_iam_role.this.arn]
-  iam_actions             = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"]
+#  iam_role_arns           = [module.role.arn]
+#  iam_actions             = ["es:*"]
   encrypt_at_rest_enabled = false
   kibana_subdomain_name   = "kibana-es"
 
@@ -228,7 +237,6 @@ module "elasticsearch" {
     Name = "${local.base_name}-es"
   }))
 }
-
 
 ###########################################
 ## bastion host
@@ -255,29 +263,23 @@ module "ec2_bastion" {
   instance_type = "t2.micro"
   subnets       = data.aws_subnet_ids.public.ids
   key_name      = module.aws_key_pair[0].key_name
+  vpc_id        = data.aws_vpc.this.id
+  context       = module.this.context
+
+  security_group_enabled      = true
+  associate_public_ip_address = true
+
   user_data     = [
     "yum update",
     "yum install -y jq curl"
   ]
-  vpc_id        = data.aws_vpc.this.id
-  context       = module.this.context
 
-  associate_public_ip_address = true
-  security_groups             = [
+  security_groups = [
     aws_security_group.public.id,
     aws_security_group.private.id
   ]
-  security_group_enabled      = true
 
   security_group_rules = [
-    {
-      "cidr_blocks" : [module.travis_ip.ip_with_cidr],
-      "description" : "Allow my ip inbound to 334 for port forwarding",
-      "from_port" : 334,
-      "protocol" : "tcp",
-      "to_port" : 334,
-      "type" : "ingress"
-    },
     {
       "cidr_blocks" : [module.travis_ip.ip_with_cidr],
       "description" : "Allow my ip inbound to SSH",
