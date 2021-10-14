@@ -1,0 +1,2 @@
+terraform.state.d/
+*.auto.tfvars
