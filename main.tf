@@ -10,7 +10,7 @@ terraform {
     bucket         = "sf-ref-arch-terraform-state-dev"
     dynamodb_table = "sf_ref_arch_terraform_state_dev"
     encrypt        = true
-    role_arn       = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
+    #    role_arn       = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
   }
 
   required_providers {
@@ -34,9 +34,9 @@ terraform {
 provider "aws" {
   region = var.region
 
-  assume_role {
-    role_arn = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
-  }
+  #  assume_role {
+  #    role_arn = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
+  #  }
 }
 
 ###########################################
@@ -53,7 +53,7 @@ data "aws_vpc" "this" {
 data "aws_subnet" "private" {
   for_each = toset(var.availability_zones)
 
-  vpc_id   = data.aws_vpc.this.id
+  vpc_id = data.aws_vpc.this.id
 
   filter {
     name   = "tag:Name"
@@ -64,7 +64,7 @@ data "aws_subnet" "private" {
 data "aws_subnet" "public" {
   for_each = toset(var.availability_zones)
 
-  vpc_id   = data.aws_vpc.this.id
+  vpc_id = data.aws_vpc.this.id
 
   filter {
     name   = "tag:Name"
@@ -138,6 +138,10 @@ resource "aws_security_group" "private" {
   }))
 }
 
+locals {
+  inbound_public_cidrs = ["184.90.52.42/32", "69.225.56.127/32"]
+}
+
 resource "aws_security_group" "public" {
   name   = "${local.base_name}-public-sg"
   vpc_id = data.aws_vpc.this.id
@@ -146,15 +150,15 @@ resource "aws_security_group" "public" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [module.travis_ip.ip_with_cidr]
-#    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.inbound_public_cidrs
+    #    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [module.travis_ip.ip_with_cidr]
+    cidr_blocks = local.inbound_public_cidrs
     #    cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -178,10 +182,11 @@ data "aws_iam_policy_document" "es_full_access" {
   statement {
     sid       = "esFullAccess"
     effect    = "Allow"
-    resources = [module.elasticsearch.domain_arn]
+    resources = ["${module.elasticsearch.domain_arn}/*"]
 
     actions = [
       "es:*",
+      "es:ESHttp*"
     ]
   }
 }
@@ -210,24 +215,29 @@ module "role" {
   }))
 }
 
+resource "random_password" "admin_password" {
+  length = 32
+}
+
 module "elasticsearch" {
   source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.33.1"
 
-  namespace               = "refarch"
-  stage                   = terraform.workspace
-  name                    = "es"
-  security_groups         = [aws_security_group.private.id]
-  vpc_id                  = data.aws_vpc.this.id
-  subnet_ids              = data.aws_subnet_ids.private.ids
-  zone_awareness_enabled  = "true"
-  elasticsearch_version   = "OpenSearch_1.0"
-  instance_type           = "t2.medium.elasticsearch"
-  instance_count          = 2
-  ebs_volume_size         = 10
-#  iam_role_arns           = [module.role.arn]
-#  iam_actions             = ["es:*"]
-  encrypt_at_rest_enabled = false
-  kibana_subdomain_name   = "kibana-es"
+  namespace              = "refarch"
+  stage                  = terraform.workspace
+  name                   = "es"
+  security_groups        = [aws_security_group.private.id]
+  vpc_id                 = data.aws_vpc.this.id
+  subnet_ids             = data.aws_subnet_ids.private.ids
+  zone_awareness_enabled = "true"
+  elasticsearch_version  = "OpenSearch_1.0"
+  instance_type          = "t3.medium.elasticsearch"
+  instance_count         = 2
+  ebs_volume_size        = 10
+  #  iam_role_arns           = [module.role.arn]
+  #  iam_actions             = ["es:*"]
+  encrypt_at_rest_enabled         = true
+  node_to_node_encryption_enabled = true
+  kibana_subdomain_name           = "kibana-es"
 
   advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
@@ -236,6 +246,12 @@ module "elasticsearch" {
   tags = merge(local.tags, tomap({
     Name = "${local.base_name}-es"
   }))
+
+  //TOOD: make these configurable
+  advanced_security_options_enabled                        = true
+  advanced_security_options_internal_user_database_enabled = true
+  advanced_security_options_master_user_name               = var.admin_username
+  advanced_security_options_master_user_password           = random_password.admin_password.result
 }
 
 ###########################################
@@ -269,7 +285,7 @@ module "ec2_bastion" {
   security_group_enabled      = true
   associate_public_ip_address = true
 
-  user_data     = [
+  user_data = [
     "yum update",
     "yum install -y jq curl"
   ]
@@ -281,7 +297,7 @@ module "ec2_bastion" {
 
   security_group_rules = [
     {
-      "cidr_blocks" : [module.travis_ip.ip_with_cidr],
+      "cidr_blocks" : local.inbound_public_cidrs,
       "description" : "Allow my ip inbound to SSH",
       "from_port" : 22,
       "protocol" : "tcp",
@@ -301,6 +317,18 @@ module "ec2_bastion" {
   tags = merge(local.tags, tomap({
     Name = "travissaucier-${terraform.workspace}-bastion"
   }))
+}
+
+
+resource "aws_ssm_parameter" "this" {
+  for_each = { for x in local.ssm_params : x.name => x }
+
+  name      = lookup(each.value, "name", null)
+  value     = lookup(each.value, "value", null)
+  type      = lookup(each.value, "type", null)
+  overwrite = true
+
+  tags = local.tags
 }
 
 

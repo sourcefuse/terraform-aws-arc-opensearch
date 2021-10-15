@@ -11,7 +11,7 @@ output "bastion_host_public_ip" {
 }
 
 output "public_subnet_cidrs" {
-  value       = [for x in data.aws_subnet.public : x.cidr_block ]
+  value       = [for x in data.aws_subnet.public : x.cidr_block]
   description = "Public subnet CIDRs"
 }
 

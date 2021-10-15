@@ -22,3 +22,9 @@ variable "namespace" {
 variable "route_53_zone_name" {
   default = "poc2.sourcefuse.com"
 }
+
+variable "admin_username" {
+  default     = "opensearch_admin"
+  description = "Admin username when fine grained access control"
+  type        = string
+}
