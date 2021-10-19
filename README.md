@@ -3,6 +3,11 @@
 ## Overview
 :warning: This project was created to POC a complete OpenSearch build from the ground up. :warning:  
 
+```shell
+ssh -i ~/repos/sourcefuse/terraform-aws-opensearch/secrets/travissaucier-ssh-key -L 1444:vpc-refarch-dev-es-37n7q276d63yhckzloqoqjdayu.us-east-1.es.amazonaws.com:443 ec2-user@ec2-44-199-148-18.compute-1.amazonaws.com
+
+```
+
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
@@ -26,9 +31,7 @@
 | <a name="module_aws_key_pair"></a> [aws\_key\_pair](#module\_aws\_key\_pair) | git::https://github.com/cloudposse/terraform-aws-key-pair | 0.18.0 |
 | <a name="module_ec2_bastion"></a> [ec2\_bastion](#module\_ec2\_bastion) | git::https://github.com/cloudposse/terraform-aws-ec2-bastion-server | n/a |
 | <a name="module_elasticsearch"></a> [elasticsearch](#module\_elasticsearch) | git::https://github.com/cloudposse/terraform-aws-elasticsearch | 0.33.1 |
-| <a name="module_role"></a> [role](#module\_role) | git::https://github.com/cloudposse/terraform-aws-iam-role | 0.13.0 |
 | <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.24.1 |
-| <a name="module_travis_ip"></a> [travis\_ip](#module\_travis\_ip) | ./my-ip | n/a |
 
 ## Resources
 
@@ -58,14 +61,14 @@
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment, e.g. 'uw2', 'us-west-2', OR 'prod', 'staging', 'dev', 'UAT' | `string` | `null` | no |
 | <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br>Set to `0` for unlimited length.<br>Set to `null` for default, which is `0`.<br>Does not affect `id_full`. | `number` | `null` | no |
+| <a name="input_inbound_cidr_blocks"></a> [inbound\_cidr\_blocks](#input\_inbound\_cidr\_blocks) | Inbound CIDR block for the bastion host. | `list(string)` | <pre>[<br>  "0.0.0.0/0"<br>]</pre> | no |
 | <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | The letter case of label keys (`tag` names) (i.e. `name`, `namespace`, `environment`, `stage`, `attributes`) to use in `tags`.<br>Possible values: `lower`, `title`, `upper`.<br>Default value: `title`. | `string` | `null` | no |
 | <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The naming order of the id output and Name tag.<br>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br>You can omit any of the 5 elements, but at least one must be present. | `list(string)` | `null` | no |
 | <a name="input_label_value_case"></a> [label\_value\_case](#input\_label\_value\_case) | The letter case of output label values (also used in `tags` and `id`).<br>Possible values: `lower`, `title`, `upper` and `none` (no transformation).<br>Default value: `lower`. | `string` | `null` | no |
 | <a name="input_name"></a> [name](#input\_name) | Solution name, e.g. 'app' or 'jenkins' | `string` | `null` | no |
-| <a name="input_namespace"></a> [namespace](#input\_namespace) | # mine | `string` | `"travissaucier"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace | `string` | `"refarch"` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Regex to replace chars with empty string in `namespace`, `environment`, `stage` and `name`.<br>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | `"us-east-1"` | no |
-| <a name="input_route_53_zone_name"></a> [route\_53\_zone\_name](#input\_route\_53\_zone\_name) | n/a | `string` | `"poc2.sourcefuse.com"` | no |
 | <a name="input_stage"></a> [stage](#input\_stage) | Stage, e.g. 'prod', 'staging', 'dev', OR 'source', 'build', 'test', 'deploy', 'release' | `string` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `map('BusinessUnit','XYZ')` | `map(string)` | `{}` | no |
 

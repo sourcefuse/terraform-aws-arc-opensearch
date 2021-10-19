@@ -14,17 +14,20 @@ variable "availability_zones" {
   ]
 }
 
-## mine
 variable "namespace" {
-  default = "travissaucier"
-}
-
-variable "route_53_zone_name" {
-  default = "poc2.sourcefuse.com"
+  default     = "refarch"
+  type        = string
+  description = "Namespace"
 }
 
 variable "admin_username" {
   default     = "opensearch_admin"
   description = "Admin username when fine grained access control"
   type        = string
+}
+
+variable "inbound_cidr_blocks" {
+  default     = ["0.0.0.0/0"]
+  description = "Inbound CIDR block for the bastion host."
+  type        = list(string)
 }

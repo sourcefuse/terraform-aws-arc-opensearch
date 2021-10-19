@@ -1,111 +1,6 @@
 ###########################################
-## defaults / versions / providers
-###########################################
-terraform {
-  required_version = ">= 1.0.8"
-
-  backend "s3" {
-    region         = "us-east-1"
-    key            = "terraform-aws-opensearch/terraform.tfstate"
-    bucket         = "sf-ref-arch-terraform-state-dev"
-    dynamodb_table = "sf_ref_arch_terraform_state_dev"
-    encrypt        = true
-    #    role_arn       = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
-  }
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 2.0"
-    }
-
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 2.0"
-    }
-  }
-}
-
-#provider "elasticsearch" {
-#  url = module.elasticsearch.domain_endpoint
-#}
-
-
-provider "aws" {
-  region = var.region
-
-  #  assume_role {
-  #    role_arn = "arn:aws:iam::757583164619:role/sourcefuse-poc-2-user-role"
-  #  }
-}
-
-###########################################
-## imports / lookups
-###########################################
-data "aws_vpc" "this" {
-  filter {
-    name   = "tag:Name"
-    values = ["${local.base_name}-vpc"]
-  }
-}
-
-## network
-data "aws_subnet" "private" {
-  for_each = toset(var.availability_zones)
-
-  vpc_id = data.aws_vpc.this.id
-
-  filter {
-    name   = "tag:Name"
-    values = ["refarch-${terraform.workspace}-privatesubnet-private-${each.key}"]
-  }
-}
-
-data "aws_subnet" "public" {
-  for_each = toset(var.availability_zones)
-
-  vpc_id = data.aws_vpc.this.id
-
-  filter {
-    name   = "tag:Name"
-    values = ["refarch-${terraform.workspace}-publicsubnet-public-${each.key}"]
-  }
-}
-
-## network
-data "aws_subnet_ids" "private" {
-  vpc_id = data.aws_vpc.this.id
-
-  filter {
-    name = "tag:Name"
-
-    values = [
-      "refarch-${terraform.workspace}-privatesubnet-private-${var.region}a",
-      "refarch-${terraform.workspace}-privatesubnet-private-${var.region}b"
-    ]
-  }
-}
-
-data "aws_subnet_ids" "public" {
-  vpc_id = data.aws_vpc.this.id
-
-  filter {
-    name = "tag:Name"
-
-    values = [
-      "refarch-${terraform.workspace}-publicsubnet-public-${var.region}a",
-      "refarch-${terraform.workspace}-publicsubnet-public-${var.region}b"
-    ]
-  }
-}
-
-###########################################
 ## networking / security
 ###########################################
-module "travis_ip" {
-  source = "./my-ip"
-}
-
 resource "aws_security_group" "private" {
   name   = "${local.base_name}-private-sg"
   vpc_id = data.aws_vpc.this.id
@@ -138,10 +33,6 @@ resource "aws_security_group" "private" {
   }))
 }
 
-locals {
-  inbound_public_cidrs = ["184.90.52.42/32", "69.225.56.127/32"]
-}
-
 resource "aws_security_group" "public" {
   name   = "${local.base_name}-public-sg"
   vpc_id = data.aws_vpc.this.id
@@ -151,7 +42,6 @@ resource "aws_security_group" "public" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = local.inbound_public_cidrs
-    #    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -159,7 +49,6 @@ resource "aws_security_group" "public" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = local.inbound_public_cidrs
-    #    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -180,39 +69,17 @@ resource "aws_security_group" "public" {
 ###########################################
 data "aws_iam_policy_document" "es_full_access" {
   statement {
-    sid       = "esFullAccess"
-    effect    = "Allow"
-    resources = ["${module.elasticsearch.domain_arn}/*"]
+    sid    = "esFullAccess"
+    effect = "Allow"
+    #    resources = ["${module.elasticsearch.domain_arn}/*", "*"]
+    resources = ["*"]
 
     actions = [
       "es:*",
-      "es:ESHttp*"
+      "es:ESHttp*",
+      "*"
     ]
   }
-}
-
-module "role" {
-  source = "git::https://github.com/cloudposse/terraform-aws-iam-role?ref=0.13.0"
-
-  namespace    = "refarch"
-  stage        = terraform.workspace
-  name         = "es"
-  use_fullname = true
-
-  policy_description = "Grant full access to OpenSearch"
-  role_description   = "Grant full access to OpenSearch"
-
-  principals = {
-    "AWS" : ["*"]
-  }
-
-  policy_documents = [
-    data.aws_iam_policy_document.es_full_access.json,
-  ]
-
-  tags = merge(local.tags, tomap({
-    Name = "${local.base_name}-iam-role"
-  }))
 }
 
 resource "random_password" "admin_password" {
@@ -222,36 +89,38 @@ resource "random_password" "admin_password" {
 module "elasticsearch" {
   source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.33.1"
 
-  namespace              = "refarch"
-  stage                  = terraform.workspace
-  name                   = "es"
-  security_groups        = [aws_security_group.private.id]
-  vpc_id                 = data.aws_vpc.this.id
-  subnet_ids             = data.aws_subnet_ids.private.ids
-  zone_awareness_enabled = "true"
-  elasticsearch_version  = "OpenSearch_1.0"
-  instance_type          = "t3.medium.elasticsearch"
-  instance_count         = 2
-  ebs_volume_size        = 10
-  #  iam_role_arns           = [module.role.arn]
-  #  iam_actions             = ["es:*"]
+  namespace                       = var.namespace
+  stage                           = terraform.workspace
+  name                            = "es"
+  security_groups                 = [aws_security_group.private.id]
+  vpc_id                          = data.aws_vpc.this.id
+  subnet_ids                      = data.aws_subnet_ids.private.ids
+  zone_awareness_enabled          = "true"
+  elasticsearch_version           = "OpenSearch_1.0"
+  instance_type                   = "t3.medium.elasticsearch"
+  instance_count                  = 2
+  ebs_volume_size                 = 10
+  iam_role_arns                   = ["*"]
+  iam_actions                     = ["es:*"]
   encrypt_at_rest_enabled         = true
   node_to_node_encryption_enabled = true
   kibana_subdomain_name           = "kibana-es"
 
   advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
+    override_main_response_version           = false
   }
 
   tags = merge(local.tags, tomap({
     Name = "${local.base_name}-es"
   }))
 
-  //TOOD: make these configurable
+  //TODO: make these configurable
   advanced_security_options_enabled                        = true
   advanced_security_options_internal_user_database_enabled = true
   advanced_security_options_master_user_name               = var.admin_username
   advanced_security_options_master_user_password           = random_password.admin_password.result
+  cognito_authentication_enabled                           = false
 }
 
 ###########################################
@@ -273,7 +142,7 @@ module "ec2_bastion" {
   source  = "git::https://github.com/cloudposse/terraform-aws-ec2-bastion-server"
   enabled = true
 
-  namespace     = "travissaucier"
+  namespace     = var.namespace
   stage         = terraform.workspace
   name          = "bastion"
   instance_type = "t2.micro"
@@ -330,84 +199,3 @@ resource "aws_ssm_parameter" "this" {
 
   tags = local.tags
 }
-
-
-################################################
-## load balancer
-################################################
-/*
-resource "aws_lb_target_group" "es_tg" {
-  name        = "${local.base_name}-alb-tg"
-  port        = 80
-  protocol    = "HTTP"
-  target_type = "instance"
-  vpc_id      = data.aws_vpc.this.id
-}
-
-resource "aws_lb" "alb" {
-  name               = "${local.base_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.public.id]
-  subnets            = local.public_subnet_id
-
-  enable_deletion_protection = false
-
-#  access_logs {
-#    bucket  = null
-#    prefix  = "${local.base_name}-alb"
-#    enabled = false
-#  }
-
-  tags = merge(local.tags, tomap({
-    Name = "${local.base_name}-alb"
-  }))
-}
-
-resource "aws_lb_listener" "http_redirect" {
-  load_balancer_arn = aws_lb.alb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-}
-
-*/
-
-/*
-module "alb" {
-  source = "git::https://github.com/cloudposse/terraform-aws-alb?ref=0.35.3"
-
-  namespace  = "refarch"
-  stage      = terraform.workspace
-  name       = "alb"
-  attributes = var.attributes
-  delimiter  = var.delimiter
-  vpc_id     = data.aws_vpc.this.id
-  subnet_ids = module.subnets.public_subnet_ids
-
-  security_group_ids = [
-    aws_security_group.public.id
-  ]
-
-  access_logs_enabled                     = true
-  alb_access_logs_s3_bucket_force_destroy = true
-  cross_zone_load_balancing_enabled       = true
-
-  http2_enabled            = true
-  target_group_port        = 443
-  target_group_target_type = "instance"
-
-  tags = merge(local.tags, tomap({
-    Name = "${local.base_name}-alb"
-  }))
-}
-*/

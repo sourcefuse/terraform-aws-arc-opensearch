@@ -21,6 +21,8 @@ locals {
     }
   ]
 
+  inbound_public_cidrs = var.inbound_cidr_blocks
+
   tags = {
     Purpose     = "POC"
     Environment = terraform.workspace
