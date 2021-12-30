@@ -23,8 +23,8 @@ locals {
 
   inbound_public_cidrs = var.inbound_cidr_blocks
 
-  tags = {
+  tags = merge(var.tags, tomap({
     Purpose     = "POC"
     Environment = terraform.workspace
-  }
+  }))
 }
