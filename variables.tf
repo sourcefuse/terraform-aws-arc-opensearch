@@ -1,3 +1,7 @@
+variable "tags" {
+  description = "A map of tags to be added"
+  default     = {}
+}
 variable "region" {
   type        = string
   description = "AWS region"
