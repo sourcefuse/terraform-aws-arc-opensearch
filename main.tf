@@ -67,7 +67,7 @@ resource "aws_security_group" "public" {
 ###########################################
 ## elasticsearch
 ###########################################
-data "aws_iam_policy_document" "es_full_access" {
+/*data "aws_iam_policy_document" "es_full_access" {
   statement {
     sid    = "esFullAccess"
     effect = "Allow"
@@ -80,7 +80,7 @@ data "aws_iam_policy_document" "es_full_access" {
       "*"
     ]
   }
-}
+}*/
 
 resource "random_password" "admin_password" {
   length = 32
@@ -139,7 +139,7 @@ module "aws_key_pair" {
 
 module "ec2_bastion" {
   count   = 1
-  source  = "git::https://github.com/cloudposse/terraform-aws-ec2-bastion-server"
+  source  = "git@github.com:cloudposse/terraform-aws-ec2-bastion-server?ref=0.27.0"
   enabled = true
 
   namespace     = var.namespace
