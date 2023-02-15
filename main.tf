@@ -1,11 +1,37 @@
-###########################################
+################################################################################
+## defaults
+################################################################################
+terraform {
+  required_version = "~> 1.3"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2"
+    }
+
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.4"
+    }
+  }
+}
+
+################################################################################
 ## networking / security
-###########################################
-resource "aws_security_group" "private" {
-  name   = "${local.base_name}-private-sg"
-  vpc_id = data.aws_vpc.this.id
+################################################################################
+/*
+resource "aws_security_group" "this" {
+  name_prefix   = "${var.namespace}-${var.environment}-opensearch"
+  vpc_id = var.vpc_id
 
   ingress {
+    description = ""
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
@@ -22,11 +48,21 @@ resource "aws_security_group" "private" {
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = ""
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    cidr_blocks     = local.public_subnets_cidr_block
+    security_groups = [aws_security_group.public.id]
   }
+
+#  egress {
+#    description = "Egress to everywhere"
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
 
   tags = merge(local.tags, tomap({
     Name = "${local.base_name}-private-sg"
@@ -59,143 +95,69 @@ resource "aws_security_group" "public" {
     #    security_groups = [aws_security_group.private.id]
   }
 
-  tags = merge(local.tags, tomap({
-    Name = "${local.base_name}-public-sg"
+  tags = merge(var.tags, tomap({
+    NamePrefix = "${var.namespace}-${var.environment}-opensearch"
   }))
 }
+*/
 
-###########################################
-## elasticsearch
-###########################################
-/*data "aws_iam_policy_document" "es_full_access" {
-  statement {
-    sid    = "esFullAccess"
-    effect = "Allow"
-    #    resources = ["${module.elasticsearch.domain_arn}/*", "*"]
-    resources = ["*"]
-
-    actions = [
-      "es:*",
-      "es:ESHttp*",
-      "*"
-    ]
-  }
-}*/
-
+################################################################################
+## opensearch
+################################################################################
 resource "random_password" "admin_password" {
+  count = var.generate_random_password == true ? 1 : 0
+
   length = 32
 }
 
-module "elasticsearch" {
-  source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.33.1"
+module "opensearch" {
+  source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.35.1"
 
-  namespace                       = var.namespace
-  stage                           = terraform.workspace
-  name                            = "es"
-  security_groups                 = [aws_security_group.private.id]
-  vpc_id                          = data.aws_vpc.this.id
-  subnet_ids                      = data.aws_subnet_ids.private.ids
-  zone_awareness_enabled          = "true"
-  elasticsearch_version           = "OpenSearch_1.0"
-  instance_type                   = "t3.medium.elasticsearch"
-  instance_count                  = 2
-  ebs_volume_size                 = 10
-  iam_role_arns                   = ["*"]
-  iam_actions                     = ["es:*"]
-  encrypt_at_rest_enabled         = true
-  node_to_node_encryption_enabled = true
-  kibana_subdomain_name           = "kibana-es"
+  namespace   = var.namespace
+  environment = var.environment
 
-  advanced_options = {
-    "rest.action.multi.allow_explicit_index" = "true"
-    override_main_response_version           = false
-  }
+  ## network / security
+  vpc_id                 = var.vpc_id
+  subnet_ids             = var.subnet_ids
+  security_groups        = var.security_group_ids
+  zone_awareness_enabled = var.zone_awareness_enabled
 
-  tags = merge(local.tags, tomap({
-    Name = "${local.base_name}-es"
-  }))
+  ## opensearch configuration
+  elasticsearch_version           = var.elasticsearch_version
+  instance_type                   = var.instance_type
+  instance_count                  = var.instance_count
+  ebs_volume_size                 = var.ebs_volume_size
+  encrypt_at_rest_enabled         = var.encrypt_at_rest_enabled
+  node_to_node_encryption_enabled = var.node_to_node_encryption_enabled
+  kibana_subdomain_name           = var.kibana_subdomain_name
+  advanced_options                = var.advanced_options
 
-  //TODO: make these configurable
-  advanced_security_options_enabled                        = true
-  advanced_security_options_internal_user_database_enabled = true
+  ## iam
+  iam_role_arns = var.iam_role_arns
+  iam_actions   = var.iam_actions
+
+  ## security
+  advanced_security_options_enabled                        = var.advanced_security_options_enabled
+  advanced_security_options_internal_user_database_enabled = var.advanced_security_options_internal_user_database_enabled
   advanced_security_options_master_user_name               = var.admin_username
-  advanced_security_options_master_user_password           = random_password.admin_password.result
-  cognito_authentication_enabled                           = false
+  advanced_security_options_master_user_password           = local.advanced_security_options_master_user_password
+  cognito_authentication_enabled                           = var.cognito_authentication_enabled
+
+  tags = var.tags
 }
 
-###########################################
-## bastion host
-###########################################
-module "aws_key_pair" {
-  count  = 1
-  source = "git::https://github.com/cloudposse/terraform-aws-key-pair?ref=0.18.0"
-
-  attributes          = ["ssh", "key"]
-  ssh_public_key_path = pathexpand("~/.ssh/aws_poc2_id_rsa")
-  generate_ssh_key    = true
-
-  context = module.this.context
-}
-
-module "ec2_bastion" {
-  count   = 1
-  source  = "git@github.com:cloudposse/terraform-aws-ec2-bastion-server?ref=0.27.0"
-  enabled = true
-
-  namespace     = var.namespace
-  stage         = terraform.workspace
-  name          = "bastion"
-  instance_type = "t2.micro"
-  subnets       = data.aws_subnet_ids.public.ids
-  key_name      = module.aws_key_pair[0].key_name
-  vpc_id        = data.aws_vpc.this.id
-  context       = module.this.context
-
-  security_group_enabled      = true
-  associate_public_ip_address = true
-
-  user_data = [
-    "yum update",
-    "yum install -y jq curl"
-  ]
-
-  security_groups = [
-    aws_security_group.public.id,
-    aws_security_group.private.id
-  ]
-
-  security_group_rules = [
-    {
-      "cidr_blocks" : local.inbound_public_cidrs,
-      "description" : "Allow my ip inbound to SSH",
-      "from_port" : 22,
-      "protocol" : "tcp",
-      "to_port" : 22,
-      "type" : "ingress"
-    },
-    {
-      "cidr_blocks" : ["0.0.0.0/0"],
-      "description" : "Allow all outbound traffic",
-      "from_port" : 0,
-      "protocol" : -1,
-      "to_port" : 0,
-      "type" : "egress"
-    }
-  ]
-
-  tags = merge(local.tags, tomap({
-    Name = "travissaucier-${terraform.workspace}-bastion"
-  }))
-}
-
-
+################################################################################
+## ssm
+################################################################################
 resource "aws_ssm_parameter" "this" {
   for_each = { for x in local.ssm_params : x.name => x }
 
-  name      = lookup(each.value, "name", null)
-  value     = lookup(each.value, "value", null)
-  type      = lookup(each.value, "type", null)
+  name      = each.value.name
+  value     = each.value.value
+  type      = each.value.type
   overwrite = true
 
-  tags = local.tags
+  tags = merge(var.tags, tomap({
+    Name = each.value.name
+  }))
 }

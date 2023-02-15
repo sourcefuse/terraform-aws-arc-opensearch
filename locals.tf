@@ -1,30 +1,19 @@
 locals {
-  base_name = "refarch-${terraform.workspace}"
+  ## secrets
+  advanced_security_options_master_user_password = try(random_password.admin_password[0].result, var.custom_opensearch_password)
 
-  ## networking
-  /*private_subnet_id = [for x in var.availability_zones : data.aws_subnet.private[x].id]
-  public_subnet_id  = [for x in var.availability_zones : data.aws_subnet.public[x].id]*/
-
-  private_subnets_cidr_block = [for x in var.availability_zones : data.aws_subnet.private[x].cidr_block]
-  public_subnets_cidr_block  = [for x in var.availability_zones : data.aws_subnet.public[x].cidr_block]
-
+  ## ssm
+  ssm_param_base_name = "/${var.namespace}/${var.environment}/opensearch"
   ssm_params = [
     {
-      name  = "/${var.namespace}/${local.base_name}/opensearch/admin_password"
-      value = random_password.admin_password.result
-      type  = "SecureString"
+      name  = "${local.ssm_param_base_name}/admin_username"
+      value = var.admin_username
+      type  = "String"
     },
     {
-      name  = "/${var.namespace}/${local.base_name}/opensearch/admin_username"
-      value = var.admin_username
+      name  = "${local.ssm_param_base_name}/admin_password"
+      value = local.advanced_security_options_master_user_password
       type  = "SecureString"
-    }
+    },
   ]
-
-  inbound_public_cidrs = var.inbound_cidr_blocks
-
-  tags = merge(var.tags, tomap({
-    Purpose     = "POC"
-    Environment = terraform.workspace
-  }))
 }
