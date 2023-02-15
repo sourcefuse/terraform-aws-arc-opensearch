@@ -41,6 +41,8 @@ Terraform module example for supporting AWS OpenSearch.
 | <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment, i.e. dev, stage, prod | `string` | `"dev"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace of the project, i.e. arc | `string` | `"example"` | no |
 | <a name="input_region"></a> [region](#input\_region) | Name of the region resources will be deployed in | `string` | `"us-east-1"` | no |
+| <a name="input_subnet_names"></a> [subnet\_names](#input\_subnet\_names) | List of subnet names to lookup | `list(string)` | `[]` | no |
+| <a name="input_vpc_name"></a> [vpc\_name](#input\_vpc\_name) | Name of the VPC to add the resources | `string` | `null` | no |
 
 ## Outputs
 

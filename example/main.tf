@@ -43,7 +43,7 @@ module "tags" {
 data "aws_vpc" "default" {
   filter {
     name   = "tag:Name"
-    values = ["${var.namespace}-${var.environment}-vpc"]
+    values = var.vpc_name != null ? [var.vpc_name] : ["${var.namespace}-${var.environment}-vpc"]
   }
 }
 
@@ -52,11 +52,13 @@ data "aws_subnets" "private" {
   filter {
     name = "tag:Name"
 
-    values = [
+    ## try the created subnets from the upstream network module, or override with custom names
+    values = length(var.subnet_names) > 0 ? var.subnet_names : [
       "${var.namespace}-${var.environment}-private-${var.region}a",
       "${var.namespace}-${var.environment}-private-${var.region}b"
     ]
   }
+
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
@@ -78,7 +80,8 @@ module "opensearch" {
   namespace                      = var.namespace
   vpc_id                         = data.aws_vpc.default.id
   create_iam_service_linked_role = false # set to false if a cluster already exists
-  subnet_ids                     = local.private_subnet_cidr
+  subnet_ids                     = local.private_subnet_ids
+  availability_zones             = local.private_subnet_azs
 
   tags = module.tags.tags
 }

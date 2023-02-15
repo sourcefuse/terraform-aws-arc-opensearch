@@ -13,11 +13,23 @@ variable "namespace" {
   default     = "example"
 }
 
-################################################################################
-## shared
-################################################################################
 variable "region" {
   type        = string
   description = "Name of the region resources will be deployed in"
   default     = "us-east-1"
+}
+
+################################################################################
+## network
+################################################################################
+variable "vpc_name" {
+  type        = string
+  description = "Name of the VPC to add the resources"
+  default     = null
+}
+
+variable "subnet_names" {
+  type        = list(string)
+  description = "List of subnet names to lookup"
+  default     = []
 }
