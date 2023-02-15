@@ -3,11 +3,6 @@
 ## Overview
 Terraform module for supporting AWS OpenSearch.  
 
-To connect to the OpenSearch instance using a Bastion host:  
-```shell
-ssh -i "${path.root}/terraform-aws-refarch-opensearch/secrets/bastion-ssh-key" -L 1443:<opensearch_name>.<region>.es.amazonaws.com:443 ec2-user@<bastion_host_fqdn>
-```
-
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
