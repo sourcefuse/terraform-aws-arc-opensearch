@@ -41,16 +41,16 @@ variable "zone_awareness_enabled" {
   default     = true
 }
 
-variable "iam_role_arns" {
+variable "additional_iam_role_arns" {
   type        = list(string)
-  description = "List of IAM role ARNs to permit access to the Elasticsearch domain"
-  default     = ["*"]
+  description = "List of additional IAM role ARNs to permit access to the Elasticsearch domain"
+  default     = []
 }
 
 variable "iam_actions" {
   type        = list(string)
   description = "List of actions to allow for the IAM roles, e.g. es:ESHttpGet, es:ESHttpPut, es:ESHttpPost"
-  default     = ["es:*"]
+  default     = []
 }
 
 ################################################################################
@@ -149,4 +149,14 @@ variable "cognito_authentication_enabled" {
   type        = bool
   description = "Whether to enable Amazon Cognito authentication with Kibana"
   default     = false
+}
+
+## az
+variable "availability_zones" {
+  type        = list(string)
+  description = "List of availability zones to deploy the cluster in."
+  default = [
+    "us-east-1a",
+    "us-east-1b"
+  ]
 }

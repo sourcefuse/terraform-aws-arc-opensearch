@@ -16,4 +16,8 @@ locals {
       type  = "SecureString"
     },
   ]
+
+  ## iam
+  admin_iam_role_policy_arn_attachments = ["arn:aws:iam::aws:policy/AmazonOpenSearchServiceFullAccess"]
+  ro_iam_role_policy_arn_attachments    = ["arn:aws:iam::aws:policy/AmazonOpenSearchServiceReadOnlyAccess"]
 }

@@ -102,6 +102,63 @@ resource "aws_security_group" "public" {
 */
 
 ################################################################################
+## iam
+################################################################################
+## admin
+resource "aws_iam_role" "admin" {
+  name = "${var.namespace}-${var.environment}-opensearch-admin"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Action = "sts:AssumeRole",
+          Effect = "Allow"
+          Principal = {
+            Service = "opensearchservice.amazonaws.com"
+          },
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "admin" {
+  for_each = toset(local.admin_iam_role_policy_arn_attachments)
+
+  role       = aws_iam_role.admin.name
+  policy_arn = each.value
+}
+
+## read only
+resource "aws_iam_role" "read_only" {
+  name = "${var.namespace}-${var.environment}-opensearch-ro"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17",
+      Statement = [
+        {
+          Action = "sts:AssumeRole",
+          Effect = "Allow"
+          Principal = {
+            Service = "opensearchservice.amazonaws.com"
+          },
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "read_only" {
+  for_each = toset(local.ro_iam_role_policy_arn_attachments)
+
+  role       = aws_iam_role.read_only.name
+  policy_arn = each.value
+}
+
+################################################################################
 ## opensearch
 ################################################################################
 resource "random_password" "admin_password" {
@@ -117,10 +174,11 @@ module "opensearch" {
   environment = var.environment
 
   ## network / security
-  vpc_id                 = var.vpc_id
-  subnet_ids             = var.subnet_ids
-  security_groups        = var.security_group_ids
-  zone_awareness_enabled = var.zone_awareness_enabled
+  vpc_id                  = var.vpc_id
+  subnet_ids              = var.subnet_ids
+  security_groups         = var.security_group_ids
+  zone_awareness_enabled  = var.zone_awareness_enabled
+  availability_zone_count = length(var.availability_zones)
 
   ## opensearch configuration
   elasticsearch_version           = var.elasticsearch_version
@@ -134,8 +192,11 @@ module "opensearch" {
   create_iam_service_linked_role  = var.create_iam_service_linked_role
 
   ## iam
-  iam_role_arns = var.iam_role_arns
-  iam_actions   = var.iam_actions
+  iam_role_arns = concat(
+    [aws_iam_role.admin.arn],
+    [aws_iam_role.read_only.arn],
+  var.additional_iam_role_arns)
+  iam_actions = var.iam_actions
 
   ## security
   advanced_security_options_enabled                        = var.advanced_security_options_enabled
