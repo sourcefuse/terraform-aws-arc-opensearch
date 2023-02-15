@@ -47,15 +47,38 @@ data "aws_vpc" "default" {
   }
 }
 
+## network
+data "aws_subnets" "private" {
+  filter {
+    name = "tag:Name"
+
+    values = [
+      "${var.namespace}-${var.environment}-private-${var.region}a",
+      "${var.namespace}-${var.environment}-private-${var.region}b"
+    ]
+  }
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_subnet" "private" {
+  for_each = toset(data.aws_subnets.private.ids)
+  id       = each.value
+}
+
 ################################################################################
 ## opensearch
 ################################################################################
 module "opensearch" {
   source = "../"
 
-  environment = var.environment
-  namespace   = var.namespace
-  vpc_id      = data.aws_vpc.default.id
+  environment                    = var.environment
+  namespace                      = var.namespace
+  vpc_id                         = data.aws_vpc.default.id
+  create_iam_service_linked_role = false # set to false if a cluster already exists
+  subnet_ids                     = local.private_subnet_cidr
 
   tags = module.tags.tags
 }

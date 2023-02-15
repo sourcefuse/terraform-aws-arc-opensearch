@@ -30,6 +30,8 @@ Terraform module example for supporting AWS OpenSearch.
 
 | Name | Type |
 |------|------|
+| [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet) | data source |
+| [aws_subnets.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_vpc.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
 ## Inputs
@@ -38,7 +40,7 @@ Terraform module example for supporting AWS OpenSearch.
 |------|-------------|------|---------|:--------:|
 | <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment, i.e. dev, stage, prod | `string` | `"dev"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace of the project, i.e. arc | `string` | `"example"` | no |
-| <a name="input_region"></a> [region](#input\_region) | Name of the region resources will be deployed in | `string` | n/a | yes |
+| <a name="input_region"></a> [region](#input\_region) | Name of the region resources will be deployed in | `string` | `"us-east-1"` | no |
 
 ## Outputs
 

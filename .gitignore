@@ -3,3 +3,6 @@ terraform.state.d/
 secrets
 .terraform
 .idea
+.terraform.tfstate.lock.info
+terraform.tfstate
+/example/terraform.tfstate.backup

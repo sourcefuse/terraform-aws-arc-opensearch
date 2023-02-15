@@ -19,4 +19,5 @@ variable "namespace" {
 variable "region" {
   type        = string
   description = "Name of the region resources will be deployed in"
+  default     = "us-east-1"
 }

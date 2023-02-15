@@ -27,7 +27,6 @@ variable "vpc_id" {
 variable "subnet_ids" {
   description = "List of Subnet IDs to assign OpenSearch"
   type        = list(string)
-  default     = []
 }
 
 variable "security_group_ids" {
@@ -45,7 +44,7 @@ variable "zone_awareness_enabled" {
 variable "iam_role_arns" {
   type        = list(string)
   description = "List of IAM role ARNs to permit access to the Elasticsearch domain"
-  default     = []
+  default     = ["*"]
 }
 
 variable "iam_actions" {
@@ -71,8 +70,8 @@ variable "generate_random_password" {
 
 variable "elasticsearch_version" {
   type        = string
-  description = "Version of ElasticSearch or OpenSearch to deploy (_e.g._ 7.4, 7.1, OpenSearch_1.0, etc."
-  default     = "OpenSearch_2.5.0"
+  description = "Version of ElasticSearch or OpenSearch to deploy (_e.g._ OpenSearch_2.3, OpenSearch_1.3, OpenSearch_1.2, OpenSearch_1.1, OpenSearch_1.0, 7.4, 7.1, etc."
+  default     = "OpenSearch_2.3"
 }
 
 variable "instance_type" {
@@ -109,6 +108,12 @@ variable "kibana_subdomain_name" {
   type        = string
   description = "The name of the subdomain for Kibana in the DNS zone (_e.g._ kibana, ui, ui-es, search-ui, kibana.elasticsearch)"
   default     = ""
+}
+
+variable "create_iam_service_linked_role" {
+  type        = bool
+  default     = true
+  description = "Whether to create `AWSServiceRoleForAmazonElasticsearchService` service-linked role. Set it to `false` if you already have an ElasticSearch cluster created in the AWS account and AWSServiceRoleForAmazonElasticsearchService already exists. See https://github.com/terraform-providers/terraform-provider-aws/issues/5218 for more info"
 }
 
 ## security

@@ -131,6 +131,7 @@ module "opensearch" {
   node_to_node_encryption_enabled = var.node_to_node_encryption_enabled
   kibana_subdomain_name           = var.kibana_subdomain_name
   advanced_options                = var.advanced_options
+  create_iam_service_linked_role  = var.create_iam_service_linked_role
 
   ## iam
   iam_role_arns = var.iam_role_arns
