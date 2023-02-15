@@ -2,10 +2,10 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: terraform-aws-cloud-custodian
+  name: terraform-aws-refarch-opensearch
   description: Terraform module for setting up Opensearch.
   annotations:
-    github.com/project-slug: https://github.com/sourcefuse/terraform-aws-opensearch
+    github.com/project-slug: https://github.com/sourcefuse/terraform-aws-refarch-opensearch
     backstage.io/techdocs-ref: dir:.
 spec:
   type: service
