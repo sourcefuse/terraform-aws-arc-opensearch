@@ -64,7 +64,10 @@ variable "admin_username" {
 
 variable "generate_random_password" {
   type        = bool
-  description = "Generate a random password for the OpenSearch Administrator."
+  description = <<-EOF
+    Generate a random password for the OpenSearch Administrator.
+    If this value is `true` and `var.custom_opensearch_password` is defined, `var.custom_opensearch_password` will be ignored.
+  EOF
   default     = true
 }
 
