@@ -47,4 +47,4 @@ Terraform module example for supporting AWS OpenSearch.
 ## Outputs
 
 No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->  
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
