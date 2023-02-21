@@ -46,5 +46,7 @@ Terraform module example for supporting AWS OpenSearch.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_domain_id"></a> [domain\_id](#output\_domain\_id) | Unique identifier for the OpenSearch domain |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
