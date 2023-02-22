@@ -30,6 +30,7 @@ Terraform module example for supporting AWS OpenSearch.
 
 | Name | Type |
 |------|------|
+| [aws_caller_identity.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet) | data source |
 | [aws_subnets.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_vpc.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
@@ -49,4 +50,5 @@ Terraform module example for supporting AWS OpenSearch.
 | Name | Description |
 |------|-------------|
 | <a name="output_domain_id"></a> [domain\_id](#output\_domain\_id) | Unique identifier for the OpenSearch domain |
+| <a name="output_opensearch_name"></a> [opensearch\_name](#output\_opensearch\_name) | OpenSearch cluster name. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
