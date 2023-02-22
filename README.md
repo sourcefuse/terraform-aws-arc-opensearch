@@ -54,7 +54,7 @@ Terraform module for supporting AWS OpenSearch.
 | <a name="input_elasticsearch_version"></a> [elasticsearch\_version](#input\_elasticsearch\_version) | Version of ElasticSearch or OpenSearch to deploy (\_e.g.\_ OpenSearch\_2.3, OpenSearch\_1.3, OpenSearch\_1.2, OpenSearch\_1.1, OpenSearch\_1.0, 7.4, 7.1, etc. | `string` | `"OpenSearch_2.3"` | no |
 | <a name="input_encrypt_at_rest_enabled"></a> [encrypt\_at\_rest\_enabled](#input\_encrypt\_at\_rest\_enabled) | Whether to enable encryption at rest | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment, i.e. dev, stage, prod | `string` | n/a | yes |
-| <a name="input_generate_random_password"></a> [generate\_random\_password](#input\_generate\_random\_password) | Generate a random password for the OpenSearch Administrator. | `bool` | `true` | no |
+| <a name="input_generate_random_password"></a> [generate\_random\_password](#input\_generate\_random\_password) | Generate a random password for the OpenSearch Administrator.<br>If this value is `true` and `var.custom_opensearch_password` is defined, `var.custom_opensearch_password` will be ignored. | `bool` | `true` | no |
 | <a name="input_iam_actions"></a> [iam\_actions](#input\_iam\_actions) | List of actions to allow for the IAM roles, e.g. es:ESHttpGet, es:ESHttpPut, es:ESHttpPost | `list(string)` | `[]` | no |
 | <a name="input_instance_count"></a> [instance\_count](#input\_instance\_count) | Number of data nodes in the cluster. | `number` | `2` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | ElasticSearch or OpenSearch instance type for data nodes in the cluster | `string` | `"t3.medium.elasticsearch"` | no |
@@ -92,17 +92,31 @@ the pipeline will kick off and tag the latest git commit.
 
 ### Prerequisites
 
-Install the prerequisites:  
-* [golang](https://golang.org/doc/install#install)
-* [pre-commit](https://pre-commit.com/#install)
-* [terraform](https://learn.hashicorp.com/terraform/getting-started/install#installing-terraform)
-* [terraform-docs](https://github.com/segmentio/terraform-docs)
+- [terraform](https://learn.hashicorp.com/terraform/getting-started/install#installing-terraform)
+- [terraform-docs](https://github.com/segmentio/terraform-docs)
+- [pre-commit](https://pre-commit.com/#install)
+- [golang](https://golang.org/doc/install#install)
+- [golint](https://github.com/golang/lint#installation)
 
-Then run `pre-commit` on the repo:  
-```shell
-pre-commit install
-pre-commit run --all-files
-```
+### Configurations
+
+- Configure pre-commit hooks
+  ```sh
+  pre-commit install
+  ```
+
+### Tests
+- Tests are available in `test` directory
+- Configure the dependencies
+  ```sh
+  cd test/
+  go mod init github.com/sourcefuse/terraform-aws-refarch-<module_name>
+  go get github.com/gruntwork-io/terratest/modules/terraform
+  ```
+- Now execute the test  
+  ```sh
+  go test -timeout  30m
+  ```
 
 ## Authors
 
