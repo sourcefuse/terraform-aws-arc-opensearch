@@ -1,21 +1,21 @@
 {
-    "problemMatcher": [
+  "problemMatcher": [
+    {
+      "owner": "checkov",
+      "pattern": [
         {
-            "owner": "checkov",
-            "pattern": [
-                {
-                    "regexp": "^Check: (\\w+: .*)$",
-                    "message": 1
-                },
-                {
-                    "regexp": "^\\WFAILED.*$"
-                },
-                {
-                    "regexp": "^\\WFile: \/(.+):(\\d+)-(\\d+)$",
-                    "file": 1,
-                    "line": 2
-                }
-            ]
+          "regexp": "^Check: (\\w+: .*)$",
+          "message": 1
+        },
+        {
+          "regexp": "^\\WFAILED.*$"
+        },
+        {
+          "regexp": "^\\WFile: \/(.+):(\\d+)-(\\d+)$",
+          "file": 1,
+          "line": 2
         }
-    ]
+      ]
+    }
+  ]
 }

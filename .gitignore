@@ -1,7 +1,8 @@
+terraform.state.d/
+*.auto.tfvars
+secrets
 .terraform
-terraform.tfstate
-*.tfstate*
-terraform.tfvars
-*.backup
 .idea
-.external_momdules
+.terraform.tfstate.lock.info
+terraform.tfstate
+/example/terraform.tfstate.backup
