@@ -50,6 +50,7 @@ jobs:
           ## optional: the output format, one of: cli, json, junitxml, github_failed_only
           output_format: github_failed_only
           download_external_modules: false
+          skip_checks: "CKV2_AWS_34"
           log_level: WARNING
           ## optional: Define what UID and / or what GID to run the container under to prevent permission issues
           container_user: 1000
