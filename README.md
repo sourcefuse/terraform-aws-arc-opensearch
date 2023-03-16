@@ -1,5 +1,6 @@
 # terraform-aws-refarch-opensearch
 
+[![Known Vulnerabilities](https://github.com/sourcefuse/terraform-aws-refarch-opensearch/actions/workflows/snyk.yaml/badge.svg)](https://github.com/sourcefuse/terraform-aws-refarch-opensearch/actions/workflows/snyk.yaml)
 ## Overview
 Terraform module for supporting AWS OpenSearch.  
 
