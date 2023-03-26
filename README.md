@@ -2,7 +2,30 @@
 
 [![Known Vulnerabilities](https://github.com/sourcefuse/terraform-aws-refarch-opensearch/actions/workflows/snyk.yaml/badge.svg)](https://github.com/sourcefuse/terraform-aws-refarch-opensearch/actions/workflows/snyk.yaml)
 ## Overview
-Terraform module for supporting AWS OpenSearch.  
+Terraform module for supporting AWS OpenSearch. Creates an admin role and outputs parameters to SSM for downstream utilization or additional automation.
+
+## Usage
+
+See the `example` folder for a working module example.
+
+```hcl
+################################################################################
+## opensearch
+################################################################################
+module "opensearch" {
+  source = "git::https://github.com/sourcefuse/terraform-aws-refarch-opensearch"
+
+  environment                    = var.environment
+  namespace                      = var.namespace
+  vpc_id                         = data.aws_vpc.default.id
+  create_iam_service_linked_role = false # set to false if a cluster already exists
+  subnet_ids                     = local.private_subnet_ids
+  availability_zones             = local.private_subnet_azs
+
+  tags = module.tags.tags
+}
+
+```
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
