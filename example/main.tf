@@ -56,8 +56,8 @@ data "aws_subnets" "private" {
 
     ## try the created subnets from the upstream network module, or override with custom names
     values = length(var.subnet_names) > 0 ? var.subnet_names : [
-      "${var.namespace}-${var.environment}-private-${var.region}a",
-      "${var.namespace}-${var.environment}-private-${var.region}b"
+      "${var.namespace}-${var.environment}-private-subnet-private${var.region}a",
+      "${var.namespace}-${var.environment}-private-subnet-private${var.region}b"
     ]
   }
 
@@ -81,9 +81,13 @@ module "opensearch" {
   environment                    = var.environment
   namespace                      = var.namespace
   vpc_id                         = data.aws_vpc.default.id
-  create_iam_service_linked_role = false # set to false if a cluster already exists
+  create_iam_service_linked_role = true # set to false if a cluster already exists
   subnet_ids                     = local.private_subnet_ids
+  elasticsearch_version          = "7.7"
+  instance_count                 = var.instance_count
+  instance_type                  = var.instance_type
   availability_zones             = local.private_subnet_azs
+  ebs_volume_size                = var.ebs_volume_size
 
   tags = module.tags.tags
 }
