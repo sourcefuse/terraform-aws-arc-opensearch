@@ -56,8 +56,8 @@ data "aws_subnets" "private" {
 
     ## try the created subnets from the upstream network module, or override with custom names
     values = length(var.subnet_names) > 0 ? var.subnet_names : [
-      "${var.namespace}-${var.environment}-private-subnet-private${var.region}a",
-      "${var.namespace}-${var.environment}-private-subnet-private${var.region}b"
+      "${var.namespace}-${var.environment}-private-subnet-private-${var.region}a",
+      "${var.namespace}-${var.environment}-private-subnet-private-${var.region}b"
     ]
   }
 
