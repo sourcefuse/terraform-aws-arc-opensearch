@@ -23,7 +23,7 @@ Terraform module example for supporting AWS OpenSearch.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_opensearch"></a> [opensearch](#module\_opensearch) | ../ | n/a |
+| <a name="module_opensearch"></a> [opensearch](#module\_opensearch) | sourcefuse/arc-opensearch/aws | 0.1.2 |
 | <a name="module_tags"></a> [tags](#module\_tags) | git::https://github.com/sourcefuse/terraform-aws-refarch-tags | 1.1.0 |
 
 ## Resources
