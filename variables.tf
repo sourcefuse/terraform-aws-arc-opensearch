@@ -6,6 +6,11 @@ variable "environment" {
   description = "Name of the environment, i.e. dev, stage, prod"
 }
 
+variable "name" {
+  type        = string
+  description = "Name of the OpenSearch resource"
+}
+
 variable "namespace" {
   type        = string
   description = "Namespace of the project, i.e. arc"

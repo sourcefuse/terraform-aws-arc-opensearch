@@ -76,8 +76,9 @@ data "aws_subnet" "private" {
 ## opensearch
 ################################################################################
 module "opensearch" {
-  source                         = "sourcefuse/arc-opensearch/aws"
-  version                        = "0.1.2"
+  source = "../"
+
+  name                           = "${var.environment}-${var.namespace}-os"
   environment                    = var.environment
   namespace                      = var.namespace
   vpc_id                         = data.aws_vpc.default.id

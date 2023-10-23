@@ -91,8 +91,7 @@ resource "random_password" "admin_password" {
 module "opensearch" {
   source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.44.0"
 
-  namespace   = var.namespace
-  environment = var.environment
+  name = var.name
 
   ## network / security
   vpc_id                  = var.vpc_id
@@ -126,7 +125,10 @@ module "opensearch" {
   advanced_security_options_master_user_password           = local.advanced_security_options_master_user_password
   cognito_authentication_enabled                           = var.cognito_authentication_enabled
 
-  tags = var.tags
+  tags = merge(var.tags, tomap({
+    Environment = var.environment,
+    Namespace   = var.namespace
+  }))
 }
 
 ################################################################################
