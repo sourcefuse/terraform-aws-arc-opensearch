@@ -94,11 +94,14 @@ module "opensearch" {
   name = var.name
 
   ## network / security
-  vpc_id                  = var.vpc_id
-  subnet_ids              = var.subnet_ids
-  security_groups         = var.security_group_ids
-  zone_awareness_enabled  = var.zone_awareness_enabled
-  availability_zone_count = length(var.availability_zones)
+  vpc_id                          = var.vpc_id
+  subnet_ids                      = var.subnet_ids
+  security_groups                 = var.security_group_ids
+  zone_awareness_enabled          = var.zone_awareness_enabled
+  availability_zone_count         = length(var.availability_zones)
+  custom_endpoint_enabled         = var.custom_endpoint_enabled
+  custom_endpoint                 = var.custom_endpoint
+  custom_endpoint_certificate_arn = var.custom_endpoint_certificate_arn
 
   ## opensearch configuration
   elasticsearch_version           = var.elasticsearch_version
@@ -110,6 +113,12 @@ module "opensearch" {
   kibana_subdomain_name           = var.kibana_subdomain_name
   advanced_options                = var.advanced_options
   create_iam_service_linked_role  = var.create_iam_service_linked_role
+
+  ## cognito
+  cognito_authentication_enabled = var.cognito_authentication_enabled
+  cognito_user_pool_id           = var.cognito_user_pool_id
+  cognito_iam_role_arn           = var.cognito_iam_role_arn
+  cognito_identity_pool_id       = var.cognito_identity_pool_id
 
   ## iam
   iam_role_arns = concat(
@@ -123,7 +132,6 @@ module "opensearch" {
   advanced_security_options_internal_user_database_enabled = var.advanced_security_options_internal_user_database_enabled
   advanced_security_options_master_user_name               = var.admin_username
   advanced_security_options_master_user_password           = local.advanced_security_options_master_user_password
-  cognito_authentication_enabled                           = var.cognito_authentication_enabled
 
   tags = merge(var.tags, tomap({
     Environment = var.environment,
