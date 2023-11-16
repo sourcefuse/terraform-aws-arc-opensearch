@@ -22,6 +22,33 @@ variable "tags" {
 }
 
 ################################################################################
+## cognito
+################################################################################
+variable "cognito_authentication_enabled" {
+  type        = bool
+  description = "Whether to enable Amazon Cognito authentication with Kibana"
+  default     = false
+}
+
+variable "cognito_user_pool_id" {
+  type        = string
+  description = "The ID of the Cognito User Pool to use"
+  default     = ""
+}
+
+variable "cognito_identity_pool_id" {
+  type        = string
+  description = "The ID of the Cognito Identity Pool to use"
+  default     = ""
+}
+
+variable "cognito_iam_role_arn" {
+  type        = string
+  description = "ARN of the IAM role that has the AmazonESCognitoAccess policy attached"
+  default     = ""
+}
+
+################################################################################
 ## network / security
 ################################################################################
 variable "vpc_id" {
@@ -56,6 +83,24 @@ variable "iam_actions" {
   type        = list(string)
   description = "List of actions to allow for the IAM roles, e.g. es:ESHttpGet, es:ESHttpPut, es:ESHttpPost"
   default     = []
+}
+
+variable "custom_endpoint_enabled" {
+  type        = bool
+  description = "Whether to enable custom endpoint for the Elasticsearch domain."
+  default     = false
+}
+
+variable "custom_endpoint" {
+  type        = string
+  description = "Fully qualified domain for custom endpoint."
+  default     = ""
+}
+
+variable "custom_endpoint_certificate_arn" {
+  type        = string
+  description = "ACM certificate ARN for custom endpoint."
+  default     = ""
 }
 
 ################################################################################
@@ -151,12 +196,6 @@ variable "advanced_security_options_internal_user_database_enabled" {
   type        = bool
   description = "Whether to enable or not internal Kibana user database for ELK OpenDistro security plugin"
   default     = true
-}
-
-variable "cognito_authentication_enabled" {
-  type        = bool
-  description = "Whether to enable Amazon Cognito authentication with Kibana"
-  default     = false
 }
 
 ## az
