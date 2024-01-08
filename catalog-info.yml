@@ -3,7 +3,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: terraform-aws-refarch-opensearch
-  description: Terraform module for setting up Opensearch.
+  description: Terraform module for setting up OpenSearch.
   annotations:
     snyk.io/org-id: 04111b7b-2ba8-404b-8a16-42a04448794d
     github.com/project-slug: https://github.com/sourcefuse/terraform-aws-refarch-opensearch
@@ -13,7 +13,7 @@ metadata:
       title: ARC Docs
       icon: dashboard
     - url: https://sourcefuse.github.io/arc-docs/arc-iac-docs/modules/terraform-aws-refarch-opensearch/
-      title: ARC Opensearch Docs
+      title: ARC OpenSearch Docs
       icon: dashboard
 spec:
   type: service
