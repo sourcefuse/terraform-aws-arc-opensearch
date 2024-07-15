@@ -12,7 +12,7 @@ Terraform module for supporting AWS OpenSearch. Creates an admin role and output
 
 ## Usage
 
-See the `example` folder for a working module example.
+See the `example/vpc` folder for a working module example.
 
 ```hcl
 ################################################################################
@@ -27,6 +27,30 @@ module "opensearch" {
   create_iam_service_linked_role = false # set to false if a cluster already exists
   subnet_ids                     = local.private_subnet_ids
   availability_zones             = local.private_subnet_azs
+
+  tags = module.tags.tags
+}
+
+```
+See the `example/non-vpc` folder if you want your os to be public
+
+```hcl
+################################################################################
+## opensearch
+################################################################################
+module "opensearch" {
+  source                         = "sourcefuse/arc-opensearch/aws"
+  version                        = "1.0.3"
+  environment                    = var.environment
+  namespace                      = var.namespace
+  create_iam_service_linked_role = false # set to false if a cluster already exists
+  instance_count                 = var.instance_count
+  instance_type                  = var.instance_type
+  ebs_volume_size                = var.ebs_volume_size
+  vpc_enabled                    = false
+  allowed_cidr_blocks            = [""]  // non VPC ES to allow anonymous access from whitelisted IP ranges without requests signing
+  anonymous_iam_actions          = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for anonymous user
+  iam_actions                    = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for user
 
   tags = module.tags.tags
 }
