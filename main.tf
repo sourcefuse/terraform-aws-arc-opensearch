@@ -2,12 +2,12 @@
 ## defaults
 ################################################################################
 terraform {
-  required_version = "~> 1.3"
+  required_version = ">= 1.5, < 2.0.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = ">= 4.0, < 6.0"
     }
 
     null = {
@@ -89,13 +89,16 @@ resource "random_password" "admin_password" {
 }
 
 module "opensearch" {
-  source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.44.0"
+  source  = "cloudposse/elasticsearch/aws"
+  version = "0.47.0"
 
   name = var.name
 
   ## network / security
-  vpc_id                          = var.vpc_id
-  subnet_ids                      = var.subnet_ids
+  vpc_id                          = var.enable_public_access ? null : var.vpc_id
+  subnet_ids                      = var.enable_public_access ? null : var.subnet_ids
+  vpc_enabled                     = var.enable_public_access ? false : true
+  allowed_cidr_blocks             = var.allowed_cidr_blocks
   security_groups                 = var.security_group_ids
   zone_awareness_enabled          = var.zone_awareness_enabled
   availability_zone_count         = length(var.availability_zones)
@@ -125,7 +128,8 @@ module "opensearch" {
     [aws_iam_role.admin.arn],
     [aws_iam_role.read_only.arn],
   var.additional_iam_role_arns)
-  iam_actions = var.iam_actions
+  iam_actions           = var.iam_actions
+  anonymous_iam_actions = var.anonymous_iam_actions
 
   ## security
   advanced_security_options_enabled                        = var.advanced_security_options_enabled
