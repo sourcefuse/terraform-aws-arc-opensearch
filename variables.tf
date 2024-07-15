@@ -68,10 +68,10 @@ variable "allowed_cidr_blocks" {
   default     = []
   description = "List of CIDR blocks to be allowed to connect to the cluster"
 }
-variable "vpc_enabled" {
+variable "enable_public_access" {
   type        = bool
   description = "Set to false if ES should be deployed outside of VPC."
-  default     = true
+  default     = false
 }
 variable "security_group_ids" {
   description = "List of security groups to assign OpenSearch"

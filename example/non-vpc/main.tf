@@ -54,8 +54,8 @@ module "opensearch" {
   instance_count                 = var.instance_count
   instance_type                  = var.instance_type
   ebs_volume_size                = var.ebs_volume_size
-  vpc_enabled                    = false
-  allowed_cidr_blocks            = ["106.219.122.75/32"]                             // non VPC ES to allow anonymous access from whitelisted IP ranges without requests signing
+  enable_public_access           = true
+  allowed_cidr_blocks            = ["0.0.0.0/0"]                                     // non VPC ES to allow anonymous access from whitelisted IP ranges without requests signing
   anonymous_iam_actions          = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for anonymous user
   iam_actions                    = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for user
   tags                           = module.tags.tags

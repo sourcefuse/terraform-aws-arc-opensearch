@@ -95,9 +95,9 @@ module "opensearch" {
   name = var.name
 
   ## network / security
-  vpc_id                          = var.vpc_enabled ? var.vpc_id : null
-  subnet_ids                      = var.vpc_enabled ? var.subnet_ids : null
-  vpc_enabled                     = var.vpc_enabled
+  vpc_id                          = var.enable_public_access ? null : var.vpc_id
+  subnet_ids                      = var.enable_public_access ? null : var.subnet_ids
+  vpc_enabled                     = var.enable_public_access ? false : true
   allowed_cidr_blocks             = var.allowed_cidr_blocks
   security_groups                 = var.security_group_ids
   zone_awareness_enabled          = var.zone_awareness_enabled
