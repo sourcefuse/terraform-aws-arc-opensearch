@@ -54,13 +54,25 @@ variable "cognito_iam_role_arn" {
 variable "vpc_id" {
   type        = string
   description = "ID of the VPC where resources will be deployed to"
+  default     = null
 }
 
 variable "subnet_ids" {
   description = "List of Subnet IDs to assign OpenSearch"
   type        = list(string)
+  default     = []
 }
 
+variable "allowed_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "List of CIDR blocks to be allowed to connect to the cluster"
+}
+variable "vpc_enabled" {
+  type        = bool
+  description = "Set to false if ES should be deployed outside of VPC."
+  default     = true
+}
 variable "security_group_ids" {
   description = "List of security groups to assign OpenSearch"
   type        = list(string)
@@ -82,6 +94,11 @@ variable "additional_iam_role_arns" {
 variable "iam_actions" {
   type        = list(string)
   description = "List of actions to allow for the IAM roles, e.g. es:ESHttpGet, es:ESHttpPut, es:ESHttpPost"
+  default     = []
+}
+variable "anonymous_iam_actions" {
+  type        = list(string)
+  description = "List of actions to allow for the anonymous (`*`) IAM roles, _e.g._ `es:ESHttpGet`, `es:ESHttpPut`, `es:ESHttpPost`"
   default     = []
 }
 
