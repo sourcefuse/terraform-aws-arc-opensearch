@@ -89,7 +89,8 @@ resource "random_password" "admin_password" {
 }
 
 module "opensearch" {
-  source = "git::https://github.com/cloudposse/terraform-aws-elasticsearch?ref=0.47.0"
+  source  = "cloudposse/elasticsearch/aws"
+  version = "0.47.0"
 
   name = var.name
 

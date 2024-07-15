@@ -27,10 +27,11 @@ provider "aws" {
 }
 
 module "tags" {
-  source = "git::https://github.com/sourcefuse/terraform-aws-refarch-tags?ref=1.1.0"
+  source  = "sourcefuse/arc-tags/aws"
+  version = "1.2.6"
 
   environment = terraform.workspace
-  project     = "terraform-aws-refarch-opensearch"
+  project     = "terraform-aws-arc-opensearch"
 
   extra_tags = {
     Example = "True"
@@ -76,7 +77,7 @@ data "aws_subnet" "private" {
 ## opensearch
 ################################################################################
 module "opensearch" {
-  source = "../.."
+  source = "sourcefuse/arc-opensearch/aws"
 
   name                           = "${var.environment}-${var.namespace}-os"
   environment                    = var.environment

@@ -54,7 +54,7 @@ module "opensearch" {
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_opensearch"></a> [opensearch](#module\_opensearch) | git::https://github.com/cloudposse/terraform-aws-elasticsearch | 0.47.0 |
+| <a name="module_opensearch"></a> [opensearch](#module\_opensearch) | cloudposse/elasticsearch/aws | 0.47.0 |
 
 ## Resources
 
