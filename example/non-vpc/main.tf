@@ -4,29 +4,18 @@
 terraform {
   required_version = "~> 1.7"
 
-  required_providers {
+   required_providers {
     aws = {
+     version = ">= 5.64"
       source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.2"
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.4"
     }
   }
+
 }
 
 provider "aws" {
   region = var.region
 }
-
-data "aws_caller_identity" "this" {}
 
 module "tags" {
   source  = "sourcefuse/arc-tags/aws"
@@ -39,24 +28,26 @@ module "tags" {
     Example = "True"
   }
 }
-
 ################################################################################
 ## opensearch
 ################################################################################
 module "opensearch" {
   source = "../.."
 
-  name                           = "${var.environment}-${var.namespace}-os"
-  environment                    = var.environment
-  namespace                      = var.namespace
-  create_iam_service_linked_role = true # set to false if a cluster already exists
-  elasticsearch_version          = "7.7"
-  instance_count                 = var.instance_count
-  instance_type                  = var.instance_type
-  ebs_volume_size                = var.ebs_volume_size
-  enable_public_access           = true
-  allowed_cidr_blocks            = ["0.0.0.0/0"]                                     // non VPC ES to allow anonymous access from whitelisted IP ranges without requests signing
-  anonymous_iam_actions          = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for anonymous user
-  iam_actions                    = ["es:ESHttpGet", "es:ESHttpPut", "es:ESHttpPost"] // Actions for user
+  region            = var.region
+  domain_name       = var.domain_name
+  engine_version    = var.engine_version
+  instance_type     = var.instance_type
+  instance_count    = var.instance_count
+  enable_vpc_options = false
+  enable_encrypt_at_rest = true
+  auto_software_update_enabled = false
+  enable_domain_endpoint_options = true
+   advanced_security_enabled = true
+  access_policies     = var.access_policy 
+  enable_zone_awareness = false
   tags                           = module.tags.tags
 }
+
+
+

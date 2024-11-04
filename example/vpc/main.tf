@@ -4,22 +4,13 @@
 terraform {
   required_version = "~> 1.7"
 
-  required_providers {
+   required_providers {
     aws = {
+     version = ">= 5.64"
       source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
-
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.2"
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.4"
     }
   }
+
 }
 
 provider "aws" {
@@ -79,16 +70,18 @@ data "aws_subnet" "private" {
 module "opensearch" {
   source = "sourcefuse/arc-opensearch/aws"
 
-  name                           = "${var.environment}-${var.namespace}-os"
-  environment                    = var.environment
-  namespace                      = var.namespace
-  vpc_id                         = data.aws_vpc.default.id
-  create_iam_service_linked_role = true # set to false if a cluster already exists
-  subnet_ids                     = local.private_subnet_ids
-  elasticsearch_version          = "7.7"
-  instance_count                 = var.instance_count
-  instance_type                  = var.instance_type
-  availability_zones             = local.private_subnet_azs
-  ebs_volume_size                = var.ebs_volume_size
+  region            = var.region
+  domain_name       = var.domain_name
+  engine_version    = var.engine_version
+  instance_type     = var.instance_type
+  instance_count    = var.instance_count
+  enable_vpc_options = true
+  vpc_id            = data.aws_vpc.default.id
+  subnet_ids        = local.private_subnet_ids
+  ingress_rules = var.ingress_rules
+  egress_rules  = var.egress_rules
+  advanced_security_enabled = true
+  access_policies     = var.access_policy 
+
   tags                           = module.tags.tags
 }

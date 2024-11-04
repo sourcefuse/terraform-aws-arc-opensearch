@@ -1,37 +1,76 @@
-################################################################################
-## shared
-################################################################################
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"  # Change as needed
+}
+
+
 variable "environment" {
   type        = string
-  description = "Name of the environment, i.e. dev, stage, prod"
-  default     = "poc"
+  default     = "dev"
+  description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
 }
 
-variable "namespace" {
+variable "domain_name" {
+  description = "Name of the OpenSearch domain"
   type        = string
-  description = "Namespace of the project, i.e. arc"
-  default     = "arc"
 }
 
-variable "region" {
+variable "engine_version" {
+  description = "OpenSearch or Elasticsearch engine version"
   type        = string
-  description = "Name of the region resources will be deployed in"
-  default     = "us-east-1"
+  default     = "OpenSearch_1.0" 
 }
+
 variable "instance_type" {
+  description = "Instance type for the OpenSearch domain"
   type        = string
-  description = "ElasticSearch or OpenSearch instance type for data nodes in the cluster"
-  default     = "t3.medium.elasticsearch"
+  default     = "m4.large.search" 
 }
 
 variable "instance_count" {
+  description = "Number of instances in the cluster"
   type        = number
-  description = "Number of data nodes in the cluster."
-  default     = 2
+  default     = 2 
 }
 
-variable "ebs_volume_size" {
+variable "vpc_id" {
+  description = "VPC ID for the OpenSearch domain"
+  type        = string
+}
+
+variable "ebs_enabled" {
+  description = "Whether EBS is enabled for the domain"
+  type        = bool
+  default     = true
+}
+
+variable "volume_type" {
+  description = "EBS volume type"
+  type        = string
+  default     = "gp2"
+}
+
+variable "volume_size" {
+  description = "EBS volume size in GB"
   type        = number
-  description = "EBS volumes for data storage in GB"
-  default     = 10
+  default     = 20
+}
+
+variable "iops" {
+  description = "Provisioned IOPS for the volume"
+  type        = number
+  default     = null
+}
+
+variable "throughput" {
+  description = "Provisioned throughput for the volume"
+  type        = number
+  default     = null
+}
+
+
+variable "access_policy" {
+  description = "Access policy for the OpenSearch domain"
+  type        = string
 }

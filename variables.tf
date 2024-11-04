@@ -1,226 +1,429 @@
-################################################################################
-## shared
-################################################################################
-variable "environment" {
+variable "region" {
+  description = "AWS region"
   type        = string
-  description = "Name of the environment, i.e. dev, stage, prod"
+  default     = "us-east-1"
 }
 
-variable "name" {
+variable "domain_name" {
+  description = "Name of the OpenSearch domain"
   type        = string
-  description = "Name of the OpenSearch resource"
 }
 
-variable "namespace" {
+variable "engine_version" {
+  description = "OpenSearch or Elasticsearch engine version"
   type        = string
-  description = "Namespace of the project, i.e. arc"
+  default     = "OpenSearch_1.0"
 }
 
-variable "tags" {
-  type        = map(string)
-  description = "Default tags to apply to every resource"
+variable "instance_type" {
+  description = "Instance type for the OpenSearch domain"
+  type        = string
+  default     = "m4.large.search"
 }
 
-################################################################################
-## cognito
-################################################################################
-variable "cognito_authentication_enabled" {
+variable "instance_count" {
+  description = "Number of instances in the cluster"
+  type        = number
+  default     = 2
+}
+
+variable "zone_awareness_enabled" {
+  description = "Whether zone awareness is enabled"
   type        = bool
-  description = "Whether to enable Amazon Cognito authentication with Kibana"
+  default     = true
+}
+
+variable "dedicated_master_enabled" {
+  description = "Whether dedicated master is enabled"
+  type        = bool
   default     = false
 }
 
-variable "cognito_user_pool_id" {
+variable "dedicated_master_type" {
+  description = "Instance type for the dedicated master node"
   type        = string
-  description = "The ID of the Cognito User Pool to use"
-  default     = ""
+  default     = "m4.large.search"
 }
 
-variable "cognito_identity_pool_id" {
-  type        = string
-  description = "The ID of the Cognito Identity Pool to use"
-  default     = ""
+variable "dedicated_master_count" {
+  description = "Number of dedicated master instances"
+  type        = number
+  default     = 3
 }
 
-variable "cognito_iam_role_arn" {
-  type        = string
-  description = "ARN of the IAM role that has the AmazonESCognitoAccess policy attached"
-  default     = ""
+variable "use_ultrawarm" {
+  description = "Whether to enable UltraWarm nodes"
+  type        = bool
+  default     = false
 }
 
-################################################################################
-## network / security
-################################################################################
+variable "warm_type" {
+  description = "UltraWarm node instance type"
+  type        = string
+  default     = "ultrawarm1.medium.search"
+}
+
+variable "log_group_name" {
+  description = "The name of the CloudWatch Log Group"
+  type        = string
+  default     = "arc-example-log-group"
+}
+
+variable "retention_in_days" {
+  description = "The number of days to retain log events in the log group"
+  type        = number
+  default     = 7
+}
+
+variable "warm_count" {
+  description = "Number of UltraWarm instances"
+  type        = number
+  default     = 2
+}
+
+variable "ebs_enabled" {
+  description = "Whether EBS is enabled for the domain"
+  type        = bool
+  default     = true
+}
+
+variable "volume_type" {
+  description = "EBS volume type"
+  type        = string
+  default     = "gp2"
+}
+
+variable "volume_size" {
+  description = "EBS volume size in GB"
+  type        = number
+  default     = 20
+}
+
+variable "iops" {
+  description = "Provisioned IOPS for the volume"
+  type        = number
+  default     = null
+}
+
+variable "throughput" {
+  description = "Provisioned throughput for the volume"
+  type        = number
+  default     = null
+}
+
 variable "vpc_id" {
+  description = "ID of the VPC for OpenSearch domain"
   type        = string
-  description = "ID of the VPC where resources will be deployed to"
   default     = null
 }
 
 variable "subnet_ids" {
-  description = "List of Subnet IDs to assign OpenSearch"
+  description = "List of subnet IDs for the OpenSearch domain"
   type        = list(string)
   default     = []
-}
-
-variable "allowed_cidr_blocks" {
-  type        = list(string)
-  default     = []
-  description = "List of CIDR blocks to be allowed to connect to the cluster"
-}
-variable "enable_public_access" {
-  type        = bool
-  description = "Set to false if ES should be deployed outside of VPC."
-  default     = false
-}
-variable "security_group_ids" {
-  description = "List of security groups to assign OpenSearch"
-  type        = list(string)
-  default     = []
-}
-
-variable "zone_awareness_enabled" {
-  type        = bool
-  description = "Enable zone awareness for Elasticsearch cluster"
-  default     = true
-}
-
-variable "additional_iam_role_arns" {
-  type        = list(string)
-  description = "List of additional IAM role ARNs to permit access to the Elasticsearch domain"
-  default     = []
-}
-
-variable "iam_actions" {
-  type        = list(string)
-  description = "List of actions to allow for the IAM roles, e.g. es:ESHttpGet, es:ESHttpPut, es:ESHttpPost"
-  default     = []
-}
-variable "anonymous_iam_actions" {
-  type        = list(string)
-  description = "List of actions to allow for the anonymous (`*`) IAM roles, _e.g._ `es:ESHttpGet`, `es:ESHttpPut`, `es:ESHttpPost`"
-  default     = []
-}
-
-variable "custom_endpoint_enabled" {
-  type        = bool
-  description = "Whether to enable custom endpoint for the Elasticsearch domain."
-  default     = false
-}
-
-variable "custom_endpoint" {
-  type        = string
-  description = "Fully qualified domain for custom endpoint."
-  default     = ""
-}
-
-variable "custom_endpoint_certificate_arn" {
-  type        = string
-  description = "ACM certificate ARN for custom endpoint."
-  default     = ""
-}
-
-################################################################################
-## opensearch
-################################################################################
-variable "admin_username" {
-  type        = string
-  description = "Admin username when fine grained access control"
-  default     = "os_admin"
-}
-
-variable "generate_random_password" {
-  type        = bool
-  description = <<-EOF
-    Generate a random password for the OpenSearch Administrator.
-    If this value is `true` and `var.custom_opensearch_password` is defined, `var.custom_opensearch_password` will be ignored.
-  EOF
-  default     = true
-}
-
-variable "elasticsearch_version" {
-  type        = string
-  description = "Version of ElasticSearch or OpenSearch to deploy (_e.g._ OpenSearch_2.3, OpenSearch_1.3, OpenSearch_1.2, OpenSearch_1.1, OpenSearch_1.0, 7.4, 7.1, etc."
-  default     = "OpenSearch_2.3"
-}
-
-variable "instance_type" {
-  type        = string
-  description = "ElasticSearch or OpenSearch instance type for data nodes in the cluster"
-  default     = "t3.medium.elasticsearch"
-}
-
-variable "instance_count" {
-  type        = number
-  description = "Number of data nodes in the cluster."
-  default     = 2
-}
-
-variable "ebs_volume_size" {
-  type        = number
-  description = "EBS volumes for data storage in GB"
-  default     = 10
 }
 
 variable "encrypt_at_rest_enabled" {
+  description = "Enable encryption at rest"
   type        = bool
-  description = "Whether to enable encryption at rest"
   default     = true
+}
+
+variable "kms_key_id" {
+  description = "KMS key ID for encryption at rest"
+  type        = string
+  default     = ""
 }
 
 variable "node_to_node_encryption_enabled" {
+  description = "Enable node-to-node encryption"
   type        = bool
-  description = "Whether to enable node-to-node encryption"
   default     = true
 }
 
-variable "kibana_subdomain_name" {
+variable "enforce_https" {
+  description = "Force HTTPS on the OpenSearch endpoint"
+  type        = bool
+  default     = true
+}
+
+variable "tls_security_policy" {
+  description = "TLS security policy for HTTPS endpoints"
   type        = string
-  description = "The name of the subdomain for Kibana in the DNS zone (_e.g._ kibana, ui, ui-es, search-ui, kibana.elasticsearch)"
+  default     = "Policy-Min-TLS-1-2-2019-07"
+}
+
+variable "enable_custom_endpoint" {
+  description = "Enable custom domain endpoint"
+  type        = bool
+  default     = false
+}
+
+variable "custom_hostname" {
+  description = "Custom domain name for the OpenSearch endpoint"
+  type        = string
   default     = ""
 }
 
-variable "create_iam_service_linked_role" {
-  type        = bool
-  default     = true
-  description = "Whether to create `AWSServiceRoleForAmazonElasticsearchService` service-linked role. Set it to `false` if you already have an ElasticSearch cluster created in the AWS account and AWSServiceRoleForAmazonElasticsearchService already exists. See https://github.com/terraform-providers/terraform-provider-aws/issues/5218 for more info"
-}
-
-## security
-variable "custom_opensearch_password" {
+variable "custom_certificate_arn" {
+  description = "ARN of the ACM certificate for the custom endpoint"
   type        = string
-  description = "Custom Administrator password to be assigned to `var.admin_username`. If undefined, it will be a randomly generated password. Does not work if `var.generate_random_password` is `true`."
-  sensitive   = true
   default     = ""
 }
 
-variable "advanced_options" {
-  type        = map(any)
-  description = "Key-value string pairs to specify advanced configuration options"
+variable "enable_snapshot_options" {
+  description = "Enable snapshot options for the domain"
+  type        = bool
+  default     = false
+}
+
+variable "snapshot_start_hour" {
+  description = "Start hour for the automated snapshot"
+  type        = number
+  default     = 0
+}
+
+variable "log_types" {
+  description = "List of log types to publish to CloudWatch (Valid values: INDEX_SLOW_LOGS, SEARCH_SLOW_LOGS, ES_APPLICATION_LOGS, AUDIT_LOGS)"
+  type        = list(string)
+  default     = ["INDEX_SLOW_LOGS", "SEARCH_SLOW_LOGS"]
+}
+
+variable "access_policies" {
+  description = "Access policy for the OpenSearch domain"
+  type        = string
+}
+
+variable "advanced_security_enabled" {
+  description = "Enable advanced security options (fine-grained access control)"
+  type        = bool
+  default     = false
+}
+
+variable "anonymous_auth_enabled" {
+  description = "Enable anonymous authentication"
+  type        = bool
+  default     = false
+}
+
+variable "internal_user_database_enabled" {
+  description = "Enable internal user database for fine-grained access control"
+  type        = bool
+  default     = true
+}
+
+variable "master_user_name" {
+  description = "Master user name for OpenSearch"
+  type        = string
+  default     = ""
+}
+
+# variable "master_user_password" {
+#   description = "Master user password for OpenSearch"
+#   type        = string
+#   default     = ""
+# }
+
+variable "enable_auto_tune" {
+  description = "Enable Auto-Tune for the domain"
+  type        = bool
+  default     = false
+}
+
+variable "auto_tune_desired_state" {
+  description = "Desired state of Auto-Tune"
+  type        = string
+  default     = "ENABLED"
+}
+
+variable "auto_tune_cron_expression" {
+  description = "Cron expression for Auto-Tune maintenance schedule"
+  type        = string
+  default     = "0 1 * * ?"
+}
+
+variable "auto_tune_duration_value" {
+  description = "Duration value for Auto-Tune maintenance"
+  type        = number
+  default     = 1
+}
+
+variable "auto_tune_duration_unit" {
+  description = "Duration unit for Auto-Tune maintenance"
+  type        = string
+  default     = "HOURS"
+}
+
+variable "auto_tune_start_at" {
+  description = "Start time for Auto-Tune maintenance"
+  type        = string
+  default     = "2024-10-23T01:00:00Z"
+}
+
+variable "enable_cognito_options" {
+  description = "Enable Cognito authentication for the OpenSearch domain"
+  type        = bool
+  default     = false
+}
+
+variable "cognito_identity_pool_id" {
+  description = "Cognito Identity Pool ID"
+  type        = string
+  default     = ""
+}
+
+variable "cognito_role_arn" {
+  description = "Cognito Role ARN"
+  type        = string
+  default     = ""
+}
+
+variable "cognito_user_pool_id" {
+  description = "Cognito User Pool ID"
+  type        = string
+  default     = ""
+}
+
+variable "enable_off_peak_window_options" {
+  description = "Enable off-peak window options for the domain"
+  type        = bool
+  default     = false
+}
+
+variable "off_peak_hours" {
+  description = "Off-peak window start time (hours)"
+  type        = number
+  default     = 0
+}
+
+variable "off_peak_minutes" {
+  description = "Off-peak window start time (minutes)"
+  type        = number
+  default     = 0
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+}
+
+variable "cold_storage_enabled" {
+  description = "Flag to enable or disable cold storage options"
+  type        = bool
+  default     = false
+}
+
+variable "cold_storage_retention_period" {
+  description = "Retention period for cold storage in days"
+  type        = number
+  default     = 30  # Example default value
+}
+
+variable "enable_zone_awareness" {
+  description = "Enable zone awareness for the OpenSearch domain."
+  type        = bool
+  default     = false
+}
+
+variable "availability_zone_count" {
+  description = "The number of availability zones to use for zone awareness."
+  type        = number
+  default     = 2
+}
+
+variable "enable_domain_endpoint_options" {
+  description = "Enable custom domain endpoint options for the OpenSearch domain."
+  type        = bool
+  default     = false
+}
+
+variable "enable_encrypt_at_rest" {
+  description = "Enable encryption at rest for the OpenSearch domain."
+  type        = bool
+  default     = false
+}
+
+variable "log_publishing_enabled" {
+  description = "Whether to enable the log publishing option."
+  type        = bool
+  default     = true
+}
+
+variable "enable_vpc_options" {
+  description = "Enable VPC options for the OpenSearch domain."
+  type        = bool
+  default     = false  # Set a default value or leave it out if it's required
+}
+
+variable "auto_software_update_enabled" {
+  description = "Enable automatic software updates for OpenSearch"
+  type        = bool
+  default     = false
+}
+
+# SAML Options
+variable "saml_options" {
+  description = "Configuration block for SAML options in the OpenSearch domain."
+  type = object({
+    enabled                 = bool
+    idp_entity_id           = optional(string)
+    idp_metadata_content    = optional(string)
+    roles_key               = optional(string)
+    session_timeout_minutes = optional(number)
+    subject_key             = optional(string)
+  })
   default = {
-    "rest.action.multi.allow_explicit_index" = "true"
-    override_main_response_version           = false
+    enabled                 = false
+    idp_entity_id           = null
+    idp_metadata_content    = null
+    roles_key               = null
+    session_timeout_minutes = null
+    subject_key             = null
   }
 }
 
-variable "advanced_security_options_enabled" {
+variable "use_iam_arn_as_master_user" {
+  description = "Set to true to use IAM ARN as the master user, false to create a master user."
   type        = bool
-  description = "AWS Elasticsearch Kibana enchanced security plugin enabling (forces new resource)"
-  default     = true
+  default     = false
 }
 
-variable "advanced_security_options_internal_user_database_enabled" {
-  type        = bool
-  description = "Whether to enable or not internal Kibana user database for ELK OpenDistro security plugin"
-  default     = true
+variable "master_user_arn" {
+  description = "The ARN of the IAM role for fine-grained access control. Required if use_iam_arn_as_master_user is true."
+  type        = string
+  default     = "" 
 }
 
-## az
-variable "availability_zones" {
-  type        = list(string)
-  description = "List of availability zones to deploy the cluster in."
-  default = [
-    "us-east-1a",
-    "us-east-1b"
-  ]
+variable "ingress_rules" {
+  description = "A list of ingress rules for the security group."
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default     = []
+}
+
+variable "egress_rules" {
+  description = "A list of egress rules for the security group."
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+  default     = []
+}
+
+variable "security_group_name" {
+  description = "Name for the security group"
+  type        = string
+  default     = ""
+}
+
+variable "rest_action_multi_allow_explicit_index" {
+  description = "Setting to control whether to allow explicit index usage in multi-document actions"
+  type        = string
+  default     = "false"
 }

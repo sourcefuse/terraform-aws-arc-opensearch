@@ -1,53 +1,110 @@
-################################################################################
-## shared
-################################################################################
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"  # Change as needed
+}
+
+variable "project_name" {
+  type        = string
+  default     = "sourcefuse"
+  description = "Project name"
+}
+
 variable "environment" {
   type        = string
-  description = "Name of the environment, i.e. dev, stage, prod"
-  default     = "poc"
+  default     = "dev"
+  description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
 }
 
-variable "namespace" {
+variable "domain_name" {
+  description = "Name of the OpenSearch domain"
   type        = string
-  description = "Namespace of the project, i.e. arc"
-  default     = "arc"
 }
 
-variable "region" {
+variable "engine_version" {
+  description = "OpenSearch or Elasticsearch engine version"
   type        = string
-  description = "Name of the region resources will be deployed in"
-  default     = "us-east-1"
-}
-
-################################################################################
-## network
-################################################################################
-variable "vpc_name" {
-  type        = string
-  description = "Name of the VPC to add the resources"
-  default     = "arc-poc-vpc"
-}
-
-variable "subnet_names" {
-  type        = list(string)
-  description = "List of subnet names to lookup"
-  default     = ["arc-poc-private-subnet-private-us-east-1a", "arc-poc-private-subnet-private-us-east-1b"]
+  default     = "OpenSearch_1.0" 
 }
 
 variable "instance_type" {
+  description = "Instance type for the OpenSearch domain"
   type        = string
-  description = "ElasticSearch or OpenSearch instance type for data nodes in the cluster"
-  default     = "t3.medium.elasticsearch"
+  default     = "m4.large.search" 
 }
 
 variable "instance_count" {
+  description = "Number of instances in the cluster"
   type        = number
-  description = "Number of data nodes in the cluster."
-  default     = 2
+  default     = 2 
 }
 
-variable "ebs_volume_size" {
+variable "vpc_id" {
+  description = "VPC ID for the OpenSearch domain"
+  type        = string
+}
+
+variable "allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the domain"
+  type        = list(string)
+}
+
+variable "ebs_enabled" {
+  description = "Whether EBS is enabled for the domain"
+  type        = bool
+  default     = true
+}
+
+variable "volume_type" {
+  description = "EBS volume type"
+  type        = string
+  default     = "gp2"
+}
+
+variable "volume_size" {
+  description = "EBS volume size in GB"
   type        = number
-  description = "EBS volumes for data storage in GB"
-  default     = 10
+  default     = 20
+}
+
+variable "iops" {
+  description = "Provisioned IOPS for the volume"
+  type        = number
+  default     = null
+}
+
+variable "throughput" {
+  description = "Provisioned throughput for the volume"
+  type        = number
+  default     = null
+}
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for the OpenSearch domain"
+  type        = list(string)
+}
+
+variable "access_policy" {
+  description = "Access policy for the OpenSearch domain"
+  type        = string
+}
+
+variable "ingress_rules" {
+  description = "A list of ingress rules for the security group."
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+}
+
+variable "egress_rules" {
+  description = "A list of egress rules for the security group."
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
 }
