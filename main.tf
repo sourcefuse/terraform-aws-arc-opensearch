@@ -184,7 +184,7 @@ resource "aws_opensearch_domain" "this" {
         for_each = var.use_iam_arn_as_master_user ? [] : [1]
         content {
           master_user_name     = var.master_user_name
-          master_user_password = aws_ssm_parameter.master_user_password.value
+          master_user_password = aws_ssm_parameter.master_user_password[0].value
           master_user_arn      = var.use_iam_arn_as_master_user ? var.master_user_arn : null
         }
       }
