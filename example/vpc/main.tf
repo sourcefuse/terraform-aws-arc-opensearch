@@ -4,9 +4,9 @@
 terraform {
   required_version = "~> 1.7"
 
-   required_providers {
+  required_providers {
     aws = {
-     version = ">= 5.64"
+      version = ">= 5.64"
       source  = "hashicorp/aws"
     }
   }
@@ -68,20 +68,19 @@ data "aws_subnet" "private" {
 ## opensearch
 ################################################################################
 module "opensearch" {
-  source = "sourcefuse/arc-opensearch/aws"
+  source = "../.."
 
-  region            = var.region
-  domain_name       = var.domain_name
-  engine_version    = var.engine_version
-  instance_type     = var.instance_type
-  instance_count    = var.instance_count
+  region             = var.region
+  domain_name        = "${var.project_name}-${var.environment}-opensearch"
+  engine_version     = var.engine_version
+  instance_type      = var.instance_type
+  instance_count     = var.instance_count
   enable_vpc_options = true
-  vpc_id            = data.aws_vpc.default.id
-  subnet_ids        = local.private_subnet_ids
-  ingress_rules = var.ingress_rules
-  egress_rules  = var.egress_rules
-  advanced_security_enabled = true
-  access_policies     = var.access_policy 
+  vpc_id             = data.aws_vpc.default.id
+  subnet_ids         = local.private_subnet_ids
+  ingress_rules      = var.ingress_rules
+  egress_rules       = var.egress_rules
+  access_policies    = var.access_policy
 
-  tags                           = module.tags.tags
+  tags = module.tags.tags
 }

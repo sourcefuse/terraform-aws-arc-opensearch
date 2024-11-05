@@ -4,6 +4,18 @@ variable "region" {
   default     = "us-east-1"
 }
 
+variable "project_name" {
+  type        = string
+  default     = "sourcefuse"
+  description = "Project name"
+}
+
+variable "environment" {
+  type        = string
+  default     = "dev"
+  description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
+}
+
 variable "domain_name" {
   description = "Name of the OpenSearch domain"
   type        = string
@@ -192,6 +204,22 @@ variable "log_types" {
 variable "access_policies" {
   description = "Access policy for the OpenSearch domain"
   type        = string
+  default     = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "es:*",
+      "Resource": "arn:aws:es:us-east-2:804295906245:domain/arc-opensearch-domain/*"
+    }
+  ]
+}
+POLICY
+
 }
 
 variable "advanced_security_enabled" {
@@ -215,14 +243,8 @@ variable "internal_user_database_enabled" {
 variable "master_user_name" {
   description = "Master user name for OpenSearch"
   type        = string
-  default     = ""
+  default     = "admin"
 }
-
-# variable "master_user_password" {
-#   description = "Master user password for OpenSearch"
-#   type        = string
-#   default     = ""
-# }
 
 variable "enable_auto_tune" {
   description = "Enable Auto-Tune for the domain"
@@ -316,7 +338,7 @@ variable "cold_storage_enabled" {
 variable "cold_storage_retention_period" {
   description = "Retention period for cold storage in days"
   type        = number
-  default     = 30  # Example default value
+  default     = 30 # Example default value
 }
 
 variable "enable_zone_awareness" {
@@ -352,7 +374,7 @@ variable "log_publishing_enabled" {
 variable "enable_vpc_options" {
   description = "Enable VPC options for the OpenSearch domain."
   type        = bool
-  default     = false  # Set a default value or leave it out if it's required
+  default     = false # Set a default value or leave it out if it's required
 }
 
 variable "auto_software_update_enabled" {
@@ -391,7 +413,7 @@ variable "use_iam_arn_as_master_user" {
 variable "master_user_arn" {
   description = "The ARN of the IAM role for fine-grained access control. Required if use_iam_arn_as_master_user is true."
   type        = string
-  default     = "" 
+  default     = ""
 }
 
 variable "ingress_rules" {
@@ -402,7 +424,7 @@ variable "ingress_rules" {
     protocol    = string
     cidr_blocks = list(string)
   }))
-  default     = []
+  default = []
 }
 
 variable "egress_rules" {
@@ -413,7 +435,7 @@ variable "egress_rules" {
     protocol    = string
     cidr_blocks = list(string)
   }))
-  default     = []
+  default = []
 }
 
 variable "security_group_name" {

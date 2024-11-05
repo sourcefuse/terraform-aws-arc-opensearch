@@ -1,13 +1,31 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"  # Change as needed
+  default     = "us-east-1" # Change as needed
 }
 
 variable "project_name" {
   type        = string
   default     = "sourcefuse"
   description = "Project name"
+}
+
+variable "namespace" {
+  type        = string
+  description = "Namespace of the project, i.e. arc"
+  default     = "arc"
+}
+
+variable "subnet_names" {
+  type        = list(string)
+  description = "List of subnet names to lookup"
+  default     = ["arc-poc-private-subnet-private-us-east-1a", "arc-poc-private-subnet-private-us-east-1b"]
+}
+
+variable "vpc_name" {
+  type        = string
+  description = "Name of the VPC to add the resources"
+  default     = "arc-poc-vpc"
 }
 
 variable "environment" {
@@ -24,64 +42,19 @@ variable "domain_name" {
 variable "engine_version" {
   description = "OpenSearch or Elasticsearch engine version"
   type        = string
-  default     = "OpenSearch_1.0" 
+  default     = "OpenSearch_1.0"
 }
 
 variable "instance_type" {
   description = "Instance type for the OpenSearch domain"
   type        = string
-  default     = "m4.large.search" 
+  default     = "m4.large.search"
 }
 
 variable "instance_count" {
   description = "Number of instances in the cluster"
   type        = number
-  default     = 2 
-}
-
-variable "vpc_id" {
-  description = "VPC ID for the OpenSearch domain"
-  type        = string
-}
-
-variable "allowed_cidr_blocks" {
-  description = "List of CIDR blocks allowed to access the domain"
-  type        = list(string)
-}
-
-variable "ebs_enabled" {
-  description = "Whether EBS is enabled for the domain"
-  type        = bool
-  default     = true
-}
-
-variable "volume_type" {
-  description = "EBS volume type"
-  type        = string
-  default     = "gp2"
-}
-
-variable "volume_size" {
-  description = "EBS volume size in GB"
-  type        = number
-  default     = 20
-}
-
-variable "iops" {
-  description = "Provisioned IOPS for the volume"
-  type        = number
-  default     = null
-}
-
-variable "throughput" {
-  description = "Provisioned throughput for the volume"
-  type        = number
-  default     = null
-}
-
-variable "subnet_ids" {
-  description = "List of subnet IDs for the OpenSearch domain"
-  type        = list(string)
+  default     = 2
 }
 
 variable "access_policy" {

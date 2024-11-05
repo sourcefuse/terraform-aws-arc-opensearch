@@ -1,8 +1,8 @@
-region               = "us-east-2"
-domain_name          = "arc-opensearch-domain"
-engine_version       = "OpenSearch_2.15" 
-instance_type        = "m5.large.search" 
-instance_count       = 2   
+region         = "us-east-2"
+domain_name    = "arc-opensearch-domain"
+engine_version = "OpenSearch_2.15"
+instance_type  = "m5.large.search"
+instance_count = 2
 
 # Access policy as a Heredoc block
 access_policy = <<POLICY

@@ -1,6 +1,6 @@
-provider "aws" {
-  region = var.region
-}
+# provider "aws" {
+#   region = var.region
+# }
 
 data "aws_caller_identity" "current" {}
 
@@ -61,21 +61,23 @@ resource "aws_cloudwatch_log_resource_policy" "this" {
   })
 }
 
- ######### Generate a random password #########
+######### Generate a random password #########
 resource "random_password" "master_user_password" {
+  count            = var.advanced_security_enabled && !var.use_iam_arn_as_master_user ? 1 : 0
   length           = 32
   special          = true
   upper            = true
   lower            = true
-  numeric           = true
+  numeric          = true
   override_special = "!@#$%^&*()-_=+[]{}"
 }
 
 ######### Store the generated password in ssm #########
 resource "aws_ssm_parameter" "master_user_password" {
-  name      = "/opensearch/${var.domain_name}/master_user_password"
-  type      = "SecureString"
-  value     = random_password.master_user_password.result
+  count = var.advanced_security_enabled && !var.use_iam_arn_as_master_user ? 1 : 0
+  name  = "/opensearch/${var.domain_name}/master_user_password"
+  type  = "SecureString"
+  value = random_password.master_user_password[0].result
 }
 
 ##############################################
@@ -87,15 +89,15 @@ resource "aws_opensearch_domain" "this" {
 
   ######## Cluster configuration #######
   cluster_config {
-    instance_type              = var.instance_type
-    instance_count             = var.instance_count
-    zone_awareness_enabled     = var.zone_awareness_enabled
-    dedicated_master_enabled   = var.dedicated_master_enabled
-    dedicated_master_type      = var.dedicated_master_enabled ? var.dedicated_master_type : null
-    dedicated_master_count     = var.dedicated_master_enabled ? var.dedicated_master_count : 0
-    warm_enabled               = var.use_ultrawarm ? true : false
-    warm_type                  = var.use_ultrawarm ? var.warm_type : null
-    warm_count                 = var.use_ultrawarm ? var.warm_count : null
+    instance_type            = var.instance_type
+    instance_count           = var.instance_count
+    zone_awareness_enabled   = var.zone_awareness_enabled
+    dedicated_master_enabled = var.dedicated_master_enabled
+    dedicated_master_type    = var.dedicated_master_enabled ? var.dedicated_master_type : null
+    dedicated_master_count   = var.dedicated_master_enabled ? var.dedicated_master_count : 0
+    warm_enabled             = var.use_ultrawarm ? true : false
+    warm_type                = var.use_ultrawarm ? var.warm_type : null
+    warm_count               = var.use_ultrawarm ? var.warm_count : null
 
     dynamic "zone_awareness_config" {
       for_each = var.enable_zone_awareness ? [1] : []
@@ -107,11 +109,11 @@ resource "aws_opensearch_domain" "this" {
 
   ######## EBS options #######
   ebs_options {
-    ebs_enabled  = var.ebs_enabled
-    volume_type  = var.volume_type
-    volume_size  = var.volume_size
-    iops         = var.iops
-    throughput   = var.throughput
+    ebs_enabled = var.ebs_enabled
+    volume_type = var.volume_type
+    volume_size = var.volume_size
+    iops        = var.iops
+    throughput  = var.throughput
   }
 
   ######## VPC Options #######
@@ -149,9 +151,9 @@ resource "aws_opensearch_domain" "this" {
   dynamic "domain_endpoint_options" {
     for_each = var.enable_domain_endpoint_options ? [1] : []
     content {
-      enforce_https                = var.enforce_https
-      tls_security_policy          = var.tls_security_policy
-      custom_endpoint              = var.enable_custom_endpoint ? var.custom_hostname : null
+      enforce_https                   = var.enforce_https
+      tls_security_policy             = var.tls_security_policy
+      custom_endpoint                 = var.enable_custom_endpoint ? var.custom_hostname : null
       custom_endpoint_certificate_arn = var.enable_custom_endpoint ? var.custom_certificate_arn : null
     }
   }
@@ -160,7 +162,7 @@ resource "aws_opensearch_domain" "this" {
   access_policies = var.access_policies
 
   ######## Log publishing options #######
-    dynamic "log_publishing_options" {
+  dynamic "log_publishing_options" {
     for_each = var.log_types
     content {
       log_type                 = log_publishing_options.value
@@ -183,10 +185,10 @@ resource "aws_opensearch_domain" "this" {
         content {
           master_user_name     = var.master_user_name
           master_user_password = aws_ssm_parameter.master_user_password.value
-          master_user_arn = var.use_iam_arn_as_master_user ? var.master_user_arn : null
+          master_user_arn      = var.use_iam_arn_as_master_user ? var.master_user_arn : null
         }
       }
-      
+
     }
   }
   ######## Auto-Tune options #######
@@ -196,7 +198,7 @@ resource "aws_opensearch_domain" "this" {
       desired_state = var.auto_tune_desired_state
 
       dynamic "maintenance_schedule" {
-        for_each = var.enable_auto_tune ? [1] : [] 
+        for_each = var.enable_auto_tune ? [1] : []
         content {
           cron_expression_for_recurrence = var.auto_tune_cron_expression
           duration {
@@ -213,10 +215,10 @@ resource "aws_opensearch_domain" "this" {
   dynamic "cognito_options" {
     for_each = var.enable_cognito_options ? [1] : []
     content {
-      enabled           = true
-      identity_pool_id  = var.cognito_identity_pool_id
-      role_arn          = var.cognito_role_arn
-      user_pool_id      = var.cognito_user_pool_id
+      enabled          = true
+      identity_pool_id = var.cognito_identity_pool_id
+      role_arn         = var.cognito_role_arn
+      user_pool_id     = var.cognito_user_pool_id
     }
   }
 
@@ -224,7 +226,7 @@ resource "aws_opensearch_domain" "this" {
   dynamic "off_peak_window_options" {
     for_each = var.enable_off_peak_window_options ? [1] : []
     content {
-      enabled   = true
+      enabled = true
       off_peak_window {
         window_start_time {
           hours   = var.off_peak_hours

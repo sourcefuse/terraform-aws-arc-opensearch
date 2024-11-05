@@ -4,9 +4,9 @@
 terraform {
   required_version = "~> 1.7"
 
-   required_providers {
+  required_providers {
     aws = {
-     version = ">= 5.64"
+      version = ">= 5.64"
       source  = "hashicorp/aws"
     }
   }
@@ -34,18 +34,18 @@ module "tags" {
 module "opensearch" {
   source = "../.."
 
-  region            = var.region
-  domain_name       = var.domain_name
-  engine_version    = var.engine_version
-  instance_type     = var.instance_type
-  instance_count    = var.instance_count
-  enable_vpc_options = false
-  enable_encrypt_at_rest = true
-  auto_software_update_enabled = false
+  region                         = var.region
+  domain_name                    = "${var.project_name}-${var.environment}-opensearch"
+  engine_version                 = var.engine_version
+  instance_type                  = var.instance_type
+  instance_count                 = var.instance_count
+  enable_vpc_options             = false
+  enable_encrypt_at_rest         = true
+  auto_software_update_enabled   = false
   enable_domain_endpoint_options = true
-   advanced_security_enabled = true
-  access_policies     = var.access_policy 
-  enable_zone_awareness = false
+  advanced_security_enabled      = true
+  # access_policies                = var.access_policy
+  enable_zone_awareness          = false
   tags                           = module.tags.tags
 }
 
