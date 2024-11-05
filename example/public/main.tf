@@ -2,16 +2,16 @@
 ## defaults
 ################################################################################
 terraform {
-  required_version = "~> 1.7"
+  required_version = ">= 1.5.0"
 
   required_providers {
     aws = {
-      version = ">= 5.64"
       source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
-
 }
+
 
 provider "aws" {
   region = var.region
@@ -34,20 +34,15 @@ module "tags" {
 module "opensearch" {
   source = "../.."
 
-  region                         = var.region
-  domain_name                    = "${var.project_name}-${var.environment}-opensearch"
+  namespace   = var.namespace
+  environment = var.environment
+
+  name                           = "${var.project_name}-${var.environment}-opensearch"
   engine_version                 = var.engine_version
   instance_type                  = var.instance_type
   instance_count                 = var.instance_count
-  enable_vpc_options             = false
   enable_encrypt_at_rest         = true
-  auto_software_update_enabled   = false
   enable_domain_endpoint_options = true
   advanced_security_enabled      = true
-  # access_policies                = var.access_policy
-  enable_zone_awareness          = false
   tags                           = module.tags.tags
 }
-
-
-

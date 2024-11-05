@@ -2,15 +2,14 @@
 ## defaults
 ################################################################################
 terraform {
-  required_version = "~> 1.7"
+  required_version = ">= 1.5.0"
 
   required_providers {
     aws = {
-      version = ">= 5.64"
       source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
-
 }
 
 provider "aws" {
@@ -30,57 +29,23 @@ module "tags" {
 }
 
 ################################################################################
-## lookups
-################################################################################
-data "aws_caller_identity" "this" {}
-
-data "aws_vpc" "default" {
-  filter {
-    name   = "tag:Name"
-    values = var.vpc_name != null ? [var.vpc_name] : ["${var.namespace}-${var.environment}-vpc"]
-  }
-}
-
-# network
-data "aws_subnets" "private" {
-  filter {
-    name = "tag:Name"
-
-    ## try the created subnets from the upstream network module, or override with custom names
-    values = length(var.subnet_names) > 0 ? var.subnet_names : [
-      "${var.namespace}-${var.environment}-private-subnet-private-${var.region}a",
-      "${var.namespace}-${var.environment}-private-subnet-private-${var.region}b"
-    ]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-data "aws_subnet" "private" {
-  for_each = toset(data.aws_subnets.private.ids)
-  id       = each.value
-}
-
-################################################################################
 ## opensearch
 ################################################################################
 module "opensearch" {
   source = "../.."
 
-  region             = var.region
-  domain_name        = "${var.project_name}-${var.environment}-opensearch"
+  namespace   = var.namespace
+  environment = var.environment
+
+  name               = "${var.project_name}-${var.environment}-opensearch"
   engine_version     = var.engine_version
   instance_type      = var.instance_type
   instance_count     = var.instance_count
   enable_vpc_options = true
   vpc_id             = data.aws_vpc.default.id
   subnet_ids         = local.private_subnet_ids
-  ingress_rules      = var.ingress_rules
-  egress_rules       = var.egress_rules
-  access_policies    = var.access_policy
+  ingress_rules      = local.ingress_rules
+  egress_rules       = local.egress_rules
 
   tags = module.tags.tags
 }

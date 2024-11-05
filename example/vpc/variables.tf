@@ -34,11 +34,6 @@ variable "environment" {
   description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
 }
 
-variable "domain_name" {
-  description = "Name of the OpenSearch domain"
-  type        = string
-}
-
 variable "engine_version" {
   description = "OpenSearch or Elasticsearch engine version"
   type        = string
@@ -48,36 +43,11 @@ variable "engine_version" {
 variable "instance_type" {
   description = "Instance type for the OpenSearch domain"
   type        = string
-  default     = "m4.large.search"
+  default     = "m5.large.search"
 }
 
 variable "instance_count" {
   description = "Number of instances in the cluster"
   type        = number
   default     = 2
-}
-
-variable "access_policy" {
-  description = "Access policy for the OpenSearch domain"
-  type        = string
-}
-
-variable "ingress_rules" {
-  description = "A list of ingress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-}
-
-variable "egress_rules" {
-  description = "A list of egress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
 }

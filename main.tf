@@ -1,8 +1,25 @@
-# provider "aws" {
-#   region = var.region
-# }
+################################################################################
+## defaults
+################################################################################
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      version = ">= 5.0"
+      source  = "hashicorp/aws"
+    }
+    random = {
+      version = ">= 3.0"
+      source  = "hashicorp/random"
+    }
+  }
+
+}
 
 data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
 
 ######## OpenSearch Security Group Options #######
 resource "aws_security_group" "opensearch_sg" {
@@ -33,15 +50,69 @@ resource "aws_security_group" "opensearch_sg" {
   tags = var.tags
 }
 
+######### Create a KMS key for CloudWatch log group ########
+resource "aws_kms_key" "log_group_key" {
+  description             = "KMS key for CloudWatch log group encryption"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "EnableRootPermissions",
+        Effect    = "Allow",
+        Principal = { AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" },
+        Action = [
+          "kms:Create*",
+          "kms:Describe*",
+          "kms:Enable*",
+          "kms:List*",
+          "kms:Put*",
+          "kms:Update*",
+          "kms:Revoke*",
+          "kms:Disable*",
+          "kms:Get*",
+          "kms:Delete*",
+          "kms:ScheduleKeyDeletion",
+          "kms:CancelKeyDeletion"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid       = "AllowCloudWatchLogs",
+        Effect    = "Allow",
+        Principal = { Service = "logs.${data.aws_region.current.name}.amazonaws.com" },
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_kms_alias" "log_group_key_alias" {
+  name          = "alias/cloudwatch-os-log-group-key"
+  target_key_id = aws_kms_key.log_group_key.id
+}
+
 ######## CloudWatch Log Group Options #######
 resource "aws_cloudwatch_log_group" "this" {
-  name              = var.log_group_name
+  name              = "${var.namespace}-${var.environment}-opensearch-log-group"
   retention_in_days = var.retention_in_days
+  kms_key_id        = aws_kms_key.log_group_key.arn
+
+  depends_on = [aws_kms_key.log_group_key]
 }
 
 ######## CloudWatch Log Resource Policy Options #######
 resource "aws_cloudwatch_log_resource_policy" "this" {
-  policy_name = "opensearch-log-group-policy"
+  policy_name = "${var.namespace}-${var.environment}-opensearch-log-group-policy"
 
   policy_document = jsonencode({
     Version = "2012-10-17",
@@ -55,7 +126,7 @@ resource "aws_cloudwatch_log_resource_policy" "this" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "arn:aws:logs:${var.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.this.name}:*"
+        Resource = "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.this.name}:*"
       }
     ]
   })
@@ -75,16 +146,42 @@ resource "random_password" "master_user_password" {
 ######### Store the generated password in ssm #########
 resource "aws_ssm_parameter" "master_user_password" {
   count = var.advanced_security_enabled && !var.use_iam_arn_as_master_user ? 1 : 0
-  name  = "/opensearch/${var.domain_name}/master_user_password"
+  name  = "/opensearch/${var.namespace}/${var.environment}/master_user_password"
   type  = "SecureString"
   value = random_password.master_user_password[0].result
+}
+
+######### IAM role for OpenSearch Service Cognito Access ########
+resource "aws_iam_role" "opensearch_cognito_role" {
+  count = var.enable_cognito_options ? 1 : 0
+  name  = "${var.namespace}-${var.environment}-opensearch-cognito-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "es.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+####### Attach the Aws managed policy to the role #######
+resource "aws_iam_role_policy_attachment" "opensearch_cognito_policy_attachment" {
+  count      = var.enable_cognito_options ? 1 : 0
+  role       = aws_iam_role.opensearch_cognito_role[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonOpenSearchServiceCognitoAccess"
 }
 
 ##############################################
 ######## OpenSearch Domain Options ###########
 ##############################################
 resource "aws_opensearch_domain" "this" {
-  domain_name    = var.domain_name
+  domain_name    = var.name
   engine_version = var.engine_version
 
   ######## Cluster configuration #######
@@ -159,7 +256,7 @@ resource "aws_opensearch_domain" "this" {
   }
 
   ###### access_policies #######
-  access_policies = var.access_policies
+  access_policies = var.access_policies != "" ? var.access_policies : local.access_policy
 
   ######## Log publishing options #######
   dynamic "log_publishing_options" {
@@ -217,7 +314,7 @@ resource "aws_opensearch_domain" "this" {
     content {
       enabled          = true
       identity_pool_id = var.cognito_identity_pool_id
-      role_arn         = var.cognito_role_arn
+      role_arn         = aws_iam_role.opensearch_cognito_role[0].arn
       user_pool_id     = var.cognito_user_pool_id
     }
   }
@@ -247,18 +344,16 @@ resource "aws_opensearch_domain" "this" {
 
 ######## SAML Options #######
 resource "aws_opensearch_domain_saml_options" "this" {
+  count       = var.saml_options.enabled ? 1 : 0
   domain_name = aws_opensearch_domain.this.domain_name
 
-  dynamic "saml_options" {
-    for_each = var.saml_options.enabled ? [1] : []
-    content {
-      idp {
-        entity_id        = var.saml_options.idp_entity_id
-        metadata_content = var.saml_options.idp_metadata_content
-      }
-      roles_key               = var.saml_options.roles_key
-      session_timeout_minutes = var.saml_options.session_timeout_minutes
-      subject_key             = var.saml_options.subject_key
+  saml_options {
+    idp {
+      entity_id        = var.saml_options.idp_entity_id
+      metadata_content = var.saml_options.idp_metadata_content
     }
+    roles_key               = var.saml_options.roles_key
+    session_timeout_minutes = var.saml_options.session_timeout_minutes
+    subject_key             = var.saml_options.subject_key
   }
 }

@@ -1,24 +1,16 @@
-variable "region" {
-  description = "AWS region"
+variable "name" {
+  description = "Name of the OpenSearch domain"
   type        = string
-  default     = "us-east-1"
-}
-
-variable "project_name" {
-  type        = string
-  default     = "sourcefuse"
-  description = "Project name"
 }
 
 variable "environment" {
   type        = string
-  default     = "dev"
-  description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
+  description = "Name of the environment, i.e. dev, stage, prod"
 }
 
-variable "domain_name" {
-  description = "Name of the OpenSearch domain"
+variable "namespace" {
   type        = string
+  description = "Namespace of the project, i.e. arc"
 }
 
 variable "engine_version" {
@@ -30,7 +22,7 @@ variable "engine_version" {
 variable "instance_type" {
   description = "Instance type for the OpenSearch domain"
   type        = string
-  default     = "m4.large.search"
+  default     = "m5.large.search"
 }
 
 variable "instance_count" {
@@ -54,7 +46,7 @@ variable "dedicated_master_enabled" {
 variable "dedicated_master_type" {
   description = "Instance type for the dedicated master node"
   type        = string
-  default     = "m4.large.search"
+  default     = "m5.large.search"
 }
 
 variable "dedicated_master_count" {
@@ -73,12 +65,6 @@ variable "warm_type" {
   description = "UltraWarm node instance type"
   type        = string
   default     = "ultrawarm1.medium.search"
-}
-
-variable "log_group_name" {
-  description = "The name of the CloudWatch Log Group"
-  type        = string
-  default     = "arc-example-log-group"
 }
 
 variable "retention_in_days" {
@@ -162,7 +148,7 @@ variable "enforce_https" {
 variable "tls_security_policy" {
   description = "TLS security policy for HTTPS endpoints"
   type        = string
-  default     = "Policy-Min-TLS-1-2-2019-07"
+  default     = "Policy-Min-TLS-1-2-PFS-2023-10"
 }
 
 variable "enable_custom_endpoint" {
@@ -202,24 +188,9 @@ variable "log_types" {
 }
 
 variable "access_policies" {
-  description = "Access policy for the OpenSearch domain"
+  description = "Custom access policy for OpenSearch domain. If empty, default policy will be used"
   type        = string
-  default     = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": "es:*",
-      "Resource": "arn:aws:es:us-east-2:804295906245:domain/arc-opensearch-domain/*"
-    }
-  ]
-}
-POLICY
-
+  default     = ""
 }
 
 variable "advanced_security_enabled" {
@@ -294,12 +265,6 @@ variable "cognito_identity_pool_id" {
   default     = ""
 }
 
-variable "cognito_role_arn" {
-  description = "Cognito Role ARN"
-  type        = string
-  default     = ""
-}
-
 variable "cognito_user_pool_id" {
   description = "Cognito User Pool ID"
   type        = string
@@ -327,18 +292,6 @@ variable "off_peak_minutes" {
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
-}
-
-variable "cold_storage_enabled" {
-  description = "Flag to enable or disable cold storage options"
-  type        = bool
-  default     = false
-}
-
-variable "cold_storage_retention_period" {
-  description = "Retention period for cold storage in days"
-  type        = number
-  default     = 30 # Example default value
 }
 
 variable "enable_zone_awareness" {
@@ -374,7 +327,7 @@ variable "log_publishing_enabled" {
 variable "enable_vpc_options" {
   description = "Enable VPC options for the OpenSearch domain."
   type        = bool
-  default     = false # Set a default value or leave it out if it's required
+  default     = false
 }
 
 variable "auto_software_update_enabled" {
@@ -442,10 +395,4 @@ variable "security_group_name" {
   description = "Name for the security group"
   type        = string
   default     = ""
-}
-
-variable "rest_action_multi_allow_explicit_index" {
-  description = "Setting to control whether to allow explicit index usage in multi-document actions"
-  type        = string
-  default     = "false"
 }
