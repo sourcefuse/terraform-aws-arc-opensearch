@@ -21,17 +21,17 @@ See the `example/vpc` folder for a working module example.
 module "opensearch" {
   source                         = "sourcefuse/arc-opensearch/aws"
   version                        = "0.1.2"
-  namespace          = var.namespace
-  environment        = var.environment
-  name               = "${var.project_name}-${var.environment}-opensearch"
-  engine_version     = var.engine_version
-  instance_type      = var.instance_type
-  instance_count     = var.instance_count
-  enable_vpc_options = true
-  vpc_id             = data.aws_vpc.default.id
-  subnet_ids         = local.private_subnet_ids
-  ingress_rules      = local.ingress_rules
-  egress_rules       = local.egress_rules
+  namespace                      = var.namespace
+  environment                    = var.environment
+  name                           = "${var.project_name}-${var.environment}-opensearch"
+  engine_version                 = var.engine_version
+  instance_type                  = var.instance_type
+  instance_count                 = var.instance_count
+  enable_vpc_options             = true
+  vpc_id                         = data.aws_vpc.default.id
+  subnet_ids                     = local.private_subnet_ids
+  ingress_rules                  = local.ingress_rules
+  egress_rules                   = local.egress_rules
 
   tags = module.tags.tags
 }
