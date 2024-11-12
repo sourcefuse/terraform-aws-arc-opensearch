@@ -29,15 +29,14 @@ module "tags" {
 }
 
 ################################################################################
-## opensearch
+##########################      opensearch         #############################
 ################################################################################
 module "opensearch" {
   source = "../.."
 
-  namespace   = var.namespace
-  environment = var.environment
-
-  name               = "${var.project_name}-${var.environment}-opensearch"
+  namespace          = var.namespace
+  environment        = var.environment
+  name               = var.name
   engine_version     = var.engine_version
   instance_type      = var.instance_type
   instance_count     = var.instance_count
@@ -48,4 +47,25 @@ module "opensearch" {
   egress_rules       = local.egress_rules
 
   tags = module.tags.tags
+}
+
+##################################################
+######## OpenSearch Serverless Domain  ###########
+##################################################
+
+module "opensearch_serverless" {
+  source = "../.."
+
+  enable_serverless           = true
+  namespace                   = var.namespace
+  environment                 = var.environment
+  name                        = var.name
+  ingress_rules               = local.ingress_rules
+  egress_rules                = local.egress_rules
+  subnet_ids                  = local.private_subnet_ids
+  vpc_id                      = data.aws_vpc.default.id
+  data_lifecycle_policy_rules = local.data_lifecycle_policy_rules
+  access_policy_rules         = local.access_policy_rules
+  tags                        = module.tags.tags
+
 }

@@ -1,19 +1,18 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1" # Change as needed
-}
-
-variable "project_name" {
-  type        = string
-  default     = "sourcefuse"
-  description = "Project name"
+  default     = "us-east-1"
 }
 
 variable "namespace" {
   type        = string
   description = "Namespace of the project, i.e. arc"
   default     = "arc"
+}
+
+variable "name" {
+  description = "Name of the OpenSearch domain"
+  type        = string
 }
 
 variable "subnet_names" {
@@ -37,7 +36,7 @@ variable "environment" {
 variable "engine_version" {
   description = "OpenSearch or Elasticsearch engine version"
   type        = string
-  default     = "OpenSearch_1.0"
+  default     = "OpenSearch_2.15"
 }
 
 variable "instance_type" {
