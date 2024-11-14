@@ -1,36 +1,24 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
-}
-
-variable "namespace" {
-  type        = string
-  description = "Namespace of the project, i.e. arc"
-  default     = "arc"
-}
-
-variable "name" {
-  description = "Name of the OpenSearch domain"
-  type        = string
-}
-
-variable "subnet_names" {
-  type        = list(string)
-  description = "List of subnet names to lookup"
-  default     = ["arc-poc-private-subnet-private-us-east-1a", "arc-poc-private-subnet-private-us-east-1b"]
-}
-
-variable "vpc_name" {
-  type        = string
-  description = "Name of the VPC to add the resources"
-  default     = "arc-poc-vpc"
+  default     = "us-east-1" # Change as needed
 }
 
 variable "environment" {
   type        = string
   default     = "dev"
   description = "ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT'"
+}
+
+variable "namespace" {
+  type        = string
+  description = "Namespace of the project, i.e. refarch"
+  default     = "arc"
+}
+
+variable "name" {
+  description = "Name of the OpenSearch domain"
+  type        = string
 }
 
 variable "engine_version" {

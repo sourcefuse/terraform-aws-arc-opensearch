@@ -1,6 +1,7 @@
-#################################################
-############     common variables    ############
-#################################################
+variable "name" {
+  description = "Name of the OpenSearch domain"
+  type        = string
+}
 
 variable "environment" {
   type        = string
@@ -10,43 +11,6 @@ variable "environment" {
 variable "namespace" {
   type        = string
   description = "Namespace of the project, i.e. arc"
-}
-
-variable "ingress_rules" {
-  description = "A list of ingress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
-}
-
-variable "egress_rules" {
-  description = "A list of egress rules for the security group."
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-  }))
-  default = []
-}
-
-variable "enable_serverless" {
-  description = "Enable OpenSearch Serverless. If true, creates the serverless module; if false, creates the standard module."
-  type        = bool
-  default     = false
-}
-
-#####################################################################
-####################     opensearch domain   ########################
-#####################################################################
-
-variable "name" {
-  description = "Name of the OpenSearch domain"
-  type        = string
 }
 
 variable "engine_version" {
@@ -405,79 +369,30 @@ variable "master_user_arn" {
   default     = ""
 }
 
-variable "security_group_name" {
-  description = "Name for the security group"
-  type        = string
-  default     = ""
-}
-
-
-##################################################
-######## OpenSearch Serverless Domain  ###########
-##################################################
-
-variable "description" {
-  description = "A description for the OpenSearch collection."
-  type        = string
-  default     = "OpenSearch collection domain for logs and search"
-}
-
-variable "use_standby_replicas" {
-  description = "Flag to enable or disable standby replicas."
-  type        = bool
-  default     = true
-}
-
-variable "type" {
-  description = "The type of OpenSearch collection."
-  type        = string
-  default     = "TIMESERIES"
-}
-
-variable "create_encryption_policy" {
-  description = "Flag to determine if encryption policy should be created."
-  type        = bool
-  default     = true
-}
-
-variable "create_access_policy" {
-  description = "Flag to determine if access policy should be created."
-  type        = bool
-  default     = true
-}
-
-variable "access_policy_rules" {
-  description = "List of rules for the access policy."
+variable "ingress_rules" {
+  description = "A list of ingress rules for the security group."
   type = list(object({
-    resource_type = string
-    resource      = list(string)
-    permissions   = list(string)
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
   }))
   default = []
 }
 
-variable "create_data_lifecycle_policy" {
-  description = "Flag to determine if data lifecycle policy should be created."
-  type        = bool
-  default     = true
-}
-
-variable "data_lifecycle_policy_rules" {
-  description = "Data lifecycle policy rules for the indices."
+variable "egress_rules" {
+  description = "A list of egress rules for the security group."
   type = list(object({
-    indexes   = list(string)
-    retention = string
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
   }))
-  default = [
-    {
-      indexes   = ["*"]
-      retention = "Unlimited"
-    }
-  ]
+  default = []
 }
 
-variable "enable_public_access" {
-  description = "Enable public access for the OpenSearch collection. If false, private access will be used."
-  type        = bool
-  default     = false
+variable "security_group_name" {
+  description = "Name for the security group"
+  type        = string
+  default     = ""
 }

@@ -1,160 +1,133 @@
-################################################################################
-## defaults
-################################################################################
+###############################################################################
+####################     opensearch domain   ##################################
+###############################################################################
 terraform {
-  required_version = ">= 1.5, < 2.0.0"
+  required_version = ">= 1.5.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 4.0, < 6.0"
-    }
-
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.2"
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.4"
+      version = "~> 5.0"
     }
   }
 }
 
-################################################################################
-## iam
-################################################################################
-## admin
-resource "aws_iam_role" "admin" {
-  name = "${var.namespace}-${var.environment}-opensearch-admin"
-
-  assume_role_policy = jsonencode(
-    {
-      Version = "2012-10-17",
-      Statement = [
-        {
-          Action = "sts:AssumeRole",
-          Effect = "Allow"
-          Principal = {
-            Service = "opensearchservice.amazonaws.com"
-          },
-        }
-      ]
-    }
-  )
-}
-
-resource "aws_iam_role_policy_attachment" "admin" {
-  for_each = toset(local.admin_iam_role_policy_arn_attachments)
-
-  role       = aws_iam_role.admin.name
-  policy_arn = each.value
-}
-
-## read only
-resource "aws_iam_role" "read_only" {
-  name = "${var.namespace}-${var.environment}-opensearch-ro"
-
-  assume_role_policy = jsonencode(
-    {
-      Version = "2012-10-17",
-      Statement = [
-        {
-          Action = "sts:AssumeRole",
-          Effect = "Allow"
-          Principal = {
-            Service = "opensearchservice.amazonaws.com"
-          },
-        }
-      ]
-    }
-  )
-}
-
-resource "aws_iam_role_policy_attachment" "read_only" {
-  for_each = toset(local.ro_iam_role_policy_arn_attachments)
-
-  role       = aws_iam_role.read_only.name
-  policy_arn = each.value
-}
-
-################################################################################
-## opensearch
-################################################################################
-resource "random_password" "admin_password" {
-  count = var.generate_random_password == true ? 1 : 0
-
-  length = 32
-}
+data "aws_caller_identity" "current" {}
 
 module "opensearch" {
-  source  = "cloudposse/elasticsearch/aws"
-  version = "0.47.0"
+  source = "./modules/opensearch-domain"
 
-  name = var.name
+  count = var.enable_serverless ? 0 : 1
 
-  ## network / security
-  vpc_id                          = var.enable_public_access ? null : var.vpc_id
-  subnet_ids                      = var.enable_public_access ? null : var.subnet_ids
-  vpc_enabled                     = var.enable_public_access ? false : true
-  allowed_cidr_blocks             = var.allowed_cidr_blocks
-  security_groups                 = var.security_group_ids
-  zone_awareness_enabled          = var.zone_awareness_enabled
-  availability_zone_count         = length(var.availability_zones)
-  custom_endpoint_enabled         = var.custom_endpoint_enabled
-  custom_endpoint                 = var.custom_endpoint
-  custom_endpoint_certificate_arn = var.custom_endpoint_certificate_arn
+  namespace   = var.namespace
+  environment = var.environment
 
-  ## opensearch configuration
-  elasticsearch_version           = var.elasticsearch_version
-  instance_type                   = var.instance_type
-  instance_count                  = var.instance_count
-  ebs_volume_size                 = var.ebs_volume_size
+  name                     = var.name
+  engine_version           = var.engine_version
+  instance_type            = var.instance_type
+  instance_count           = var.instance_count
+  zone_awareness_enabled   = var.zone_awareness_enabled
+  dedicated_master_enabled = var.dedicated_master_enabled
+  dedicated_master_type    = var.dedicated_master_type
+  dedicated_master_count   = var.dedicated_master_count
+  use_ultrawarm            = var.use_ultrawarm
+  warm_type                = var.warm_type
+  retention_in_days        = var.retention_in_days
+  warm_count               = var.warm_count
+  ebs_enabled              = var.ebs_enabled
+  volume_type              = var.volume_type
+  volume_size              = var.volume_size
+  iops                     = var.iops
+  throughput               = var.throughput
+
+  vpc_id                          = var.vpc_id
+  subnet_ids                      = var.subnet_ids
   encrypt_at_rest_enabled         = var.encrypt_at_rest_enabled
+  kms_key_id                      = var.kms_key_id
   node_to_node_encryption_enabled = var.node_to_node_encryption_enabled
-  kibana_subdomain_name           = var.kibana_subdomain_name
-  advanced_options                = var.advanced_options
-  create_iam_service_linked_role  = var.create_iam_service_linked_role
+  enforce_https                   = var.enforce_https
+  tls_security_policy             = var.tls_security_policy
 
-  ## cognito
-  cognito_authentication_enabled = var.cognito_authentication_enabled
-  cognito_user_pool_id           = var.cognito_user_pool_id
-  cognito_iam_role_arn           = var.cognito_iam_role_arn
-  cognito_identity_pool_id       = var.cognito_identity_pool_id
+  enable_custom_endpoint = var.enable_custom_endpoint
+  custom_hostname        = var.custom_hostname
+  custom_certificate_arn = var.custom_certificate_arn
 
-  ## iam
-  iam_role_arns = concat(
-    [aws_iam_role.admin.arn],
-    [aws_iam_role.read_only.arn],
-  var.additional_iam_role_arns)
-  iam_actions           = var.iam_actions
-  anonymous_iam_actions = var.anonymous_iam_actions
+  enable_snapshot_options = var.enable_snapshot_options
+  snapshot_start_hour     = var.snapshot_start_hour
+  log_types               = var.log_types
 
-  ## security
-  advanced_security_options_enabled                        = var.advanced_security_options_enabled
-  advanced_security_options_internal_user_database_enabled = var.advanced_security_options_internal_user_database_enabled
-  advanced_security_options_master_user_name               = var.admin_username
-  advanced_security_options_master_user_password           = local.advanced_security_options_master_user_password
+  access_policies                = var.access_policies
+  advanced_security_enabled      = var.advanced_security_enabled
+  anonymous_auth_enabled         = var.anonymous_auth_enabled
+  internal_user_database_enabled = var.internal_user_database_enabled
+  master_user_name               = var.master_user_name
 
-  tags = merge(var.tags, tomap({
-    Environment = var.environment,
-    Namespace   = var.namespace
-  }))
+  enable_auto_tune          = var.enable_auto_tune
+  auto_tune_desired_state   = var.auto_tune_desired_state
+  auto_tune_cron_expression = var.auto_tune_cron_expression
+  auto_tune_duration_value  = var.auto_tune_duration_value
+  auto_tune_duration_unit   = var.auto_tune_duration_unit
+  auto_tune_start_at        = var.auto_tune_start_at
+
+  enable_cognito_options   = var.enable_cognito_options
+  cognito_identity_pool_id = var.cognito_identity_pool_id
+  cognito_user_pool_id     = var.cognito_user_pool_id
+
+  enable_off_peak_window_options = var.enable_off_peak_window_options
+  off_peak_hours                 = var.off_peak_hours
+  off_peak_minutes               = var.off_peak_minutes
+
+  enable_zone_awareness   = var.enable_zone_awareness
+  availability_zone_count = var.availability_zone_count
+
+  enable_domain_endpoint_options = var.enable_domain_endpoint_options
+  enable_encrypt_at_rest         = var.enable_encrypt_at_rest
+  log_publishing_enabled         = var.log_publishing_enabled
+
+  enable_vpc_options           = var.enable_vpc_options
+  auto_software_update_enabled = var.auto_software_update_enabled
+
+  saml_options = var.saml_options
+
+  use_iam_arn_as_master_user = var.use_iam_arn_as_master_user
+  master_user_arn            = var.master_user_arn
+
+  ingress_rules = var.ingress_rules
+  egress_rules  = var.egress_rules
+
+  security_group_name = var.security_group_name
+
+  tags = var.tags
 }
 
-################################################################################
-## ssm
-################################################################################
-resource "aws_ssm_parameter" "this" {
-  for_each = { for x in local.ssm_params : x.name => x }
+##################################################
+######## OpenSearch Serverless Domain  ###########
+##################################################
 
-  name      = each.value.name
-  value     = each.value.value
-  type      = each.value.type
-  overwrite = true
 
-  tags = merge(var.tags, tomap({
-    Name = each.value.name
-  }))
+module "opensearch_serverless" {
+  source = "./modules/opensearch-serverless"
+
+  count = var.enable_serverless ? 1 : 0
+
+  namespace   = var.namespace
+  environment = var.environment
+
+  name                         = var.name
+  description                  = var.description
+  use_standby_replicas         = var.use_standby_replicas
+  type                         = var.type
+  create_encryption_policy     = var.create_encryption_policy
+  subnet_ids                   = var.subnet_ids
+  vpc_id                       = var.vpc_id
+  create_access_policy         = var.create_access_policy
+  access_policy_rules          = var.access_policy_rules
+  create_data_lifecycle_policy = var.create_data_lifecycle_policy
+  data_lifecycle_policy_rules  = var.data_lifecycle_policy_rules
+  ingress_rules                = var.ingress_rules
+  egress_rules                 = var.egress_rules
+  security_group_name          = var.security_group_name
+  enable_public_access         = var.enable_public_access
+
+  tags = var.tags
 }
