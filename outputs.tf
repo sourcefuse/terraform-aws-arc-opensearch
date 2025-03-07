@@ -27,3 +27,8 @@ output "opensearch_serverless_collection_id" {
   value       = length(module.opensearch_serverless) > 0 ? module.opensearch_serverless[0].opensearch_collection_id : null
   description = "The ID of the OpenSearch Serverless collection"
 }
+
+output "opensearch_collection_endpoint" {
+  description = "The Endpoint of the OpenSearch collection"
+  value       = length(module.opensearch_serverless) > 0 ? module.opensearch_serverless[0].opensearch_collection_endpoint : null
+}
