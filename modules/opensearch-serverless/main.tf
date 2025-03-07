@@ -166,9 +166,7 @@ resource "aws_opensearchserverless_access_policy" "this" {
           "Permission"   = rule.permissions
         }
       ],
-      "Principal" = [
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.opensearch_access_role[0].name}"
-      ]
+      "Principal" = distinct(concat(["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.opensearch_access_role[0].name}"], rule.principal))
   }])
 }
 

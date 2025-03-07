@@ -68,6 +68,7 @@ variable "access_policy_rules" {
     resource_type = string
     resource      = list(string)
     permissions   = list(string)
+    principal     = optional(list(string), [])
   }))
   default = []
 }
