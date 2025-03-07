@@ -26,3 +26,8 @@ output "opensearch_serverless_collection_id" {
   description = "The ID of the OpenSearch Serverless collection"
   value       = module.opensearch_serverless.opensearch_serverless_collection_id
 }
+
+output "opensearch_serverless_collection_endpoint" {
+  description = "The ID of the OpenSearch Serverless collection"
+  value       = module.opensearch_serverless.opensearch_collection_endpoint
+}

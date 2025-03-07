@@ -51,5 +51,6 @@ Terraform module example for supporting AWS OpenSearch.
 | <a name="output_opensearch_domain_endpoint"></a> [opensearch\_domain\_endpoint](#output\_opensearch\_domain\_endpoint) | The endpoint of the OpenSearch domain. |
 | <a name="output_opensearch_domain_id"></a> [opensearch\_domain\_id](#output\_opensearch\_domain\_id) | The unique identifier for the OpenSearch domain. |
 | <a name="output_opensearch_serverless_arn"></a> [opensearch\_serverless\_arn](#output\_opensearch\_serverless\_arn) | The ARN of the OpenSearch Serverless collection. |
+| <a name="output_opensearch_serverless_collection_endpoint"></a> [opensearch\_serverless\_collection\_endpoint](#output\_opensearch\_serverless\_collection\_endpoint) | The ID of the OpenSearch Serverless collection |
 | <a name="output_opensearch_serverless_collection_id"></a> [opensearch\_serverless\_collection\_id](#output\_opensearch\_serverless\_collection\_id) | The ID of the OpenSearch Serverless collection |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
