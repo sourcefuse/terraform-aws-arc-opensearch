@@ -13,6 +13,7 @@ variable "namespace" {
 variable "name" {
   description = "Name of the OpenSearch domain"
   type        = string
+  default     = "arc-opensearch"
 }
 
 variable "subnet_names" {
