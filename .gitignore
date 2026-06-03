@@ -7,3 +7,4 @@ secrets
 terraform.tfstate
 /example/non-vpc/terraform.tfstate.backup
 /example/vpc/terraform.tfstate.backup
+.DS_Store

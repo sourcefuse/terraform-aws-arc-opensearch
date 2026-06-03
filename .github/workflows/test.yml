@@ -1,31 +1,26 @@
 ---
-name: Test
+name: Trivy Full Scan
 
-on:  # yamllint disable-line rule:truthy
-  push:
-    branches:
-      - '**'     # matches every branch
-      - '!main'  # excludes main
+"on":
   pull_request:
     branches:
       - main
 
 jobs:
-  tflint:
+  trivy-full-scan:
     runs-on: ubuntu-latest
-    name: tflint
+
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: terraform-linters/setup-tflint@v1
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          tflint_version: latest
-
-      - name: Show version
-        run: tflint --version
-
-      - name: Init tflint
-        run: tflint --init
-
-      - name: Run tflint
-        run: tflint -f compact
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: 1
