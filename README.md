@@ -8,8 +8,6 @@
 
 > **Category:** Analytics / Search
 
-> **Terraform:** `>= 1.3`
-
 > **Source:** [https://github.com/sourcefuse/terraform-aws-arc-opensearch](https://github.com/sourcefuse/terraform-aws-arc-opensearch)
 
 [![Latest Release](https://img.shields.io/github/release/sourcefuse/terraform-aws-arc-opensearch.svg?style=for-the-badge)](https://github.com/sourcefuse/terraform-aws-arc-opensearch/releases/latest)
