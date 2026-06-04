@@ -21,6 +21,10 @@
 
 Deploys Amazon OpenSearch Service domains (managed or serverless) with VPC, encryption, fine-grained access control, and CloudWatch alarms.
 
+## Architecture
+
+![Architecture Diagram](./static/arch.png)
+
 ## What It Does
 
 - Managed OpenSearch domain with configurable instance type and count
